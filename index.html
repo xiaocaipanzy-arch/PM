@@ -1,15 +1,37 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="在当前页面查看项目原型和 PRD。"><title>项目查看</title><link rel="stylesheet" href="assets/viewer.css?v=aggregate-20261117-1"><script src="assets/catalog.js?v=aggregate-20261117-1" defer></script><script src="assets/portal.js?v=aggregate-20261117-1" defer></script></head>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="按项目与功能浏览原型、说明和更新记录。"><meta name="theme-color" content="#f6f8fc">
+<title>PM · 项目资料站</title><link rel="stylesheet" href="assets/portal.css?v=portal-split-1">
+<script src="assets/catalog.js?v=portal-split-1" defer></script><script src="assets/portal.js?v=portal-split-1" defer></script>
+</head>
 <body>
-<header class="viewer-header"><div class="identity"><a id="projectHome" class="brand" href="./" aria-label="返回项目聚合页">PM</a><span class="divider"></span><h1 id="projectTitle"></h1><span id="featureTitle" class="feature-title"></span><span id="version" class="version"></span></div><div class="header-actions"><button id="shareButton" type="button">分享链接</button><button id="sourcesButton" class="quiet" type="button" aria-haspopup="dialog">更多资料 ⋯</button></div></header>
-<main id="main">
-<section id="overview" class="overview" aria-labelledby="overviewTitle"><div class="overview-heading"><div><h2 id="overviewTitle">项目内容</h2><p id="overviewSummary"></p></div><label class="overview-search"><input id="contentSearch" type="search" placeholder="搜索功能或资料" aria-label="搜索功能或资料"></label></div><div id="categoryFilters" class="category-filters" role="group" aria-label="内容类型"></div><div id="overviewCards" class="overview-cards"></div><div id="overviewEmpty" class="overview-empty" hidden><h3>暂无匹配内容</h3><p id="overviewEmptyText"></p></div></section>
-<div id="contentToolbar" class="content-toolbar"><div class="viewer-navigation"><a id="backOverview" class="back-overview">← 项目内容</a><div id="viewTabs" class="tabs" role="tablist" aria-label="查看内容"></div></div><div class="toolbar-meta"><span id="contentStatus"></span><a id="downloadFile" download>下载 ↓</a></div></div>
-<section id="prototypePanel" class="content-panel prototype-panel" role="tabpanel"><div id="embedFrames"></div></section>
-<section id="prdPanel" class="content-panel prd-panel" role="tabpanel"  hidden><article id="documentBody" class="markdown"></article></section>
-<section id="projectEmpty" class="empty project-empty" hidden><h2 id="emptyTitle"></h2><p>暂无原型或 PRD</p></section>
+<a class="skip" href="#main">跳到主要内容</a>
+<div class="layout">
+<aside class="sidebar" aria-label="项目导航">
+<a class="brand" href="./"><span class="brand-icon">P<span>↗</span></span><span>PM<span class="brand-sub">项目资料站</span></span></a>
+<div class="space-label">工作空间 <span>PUBLIC</span></div>
+<nav id="projectNav" aria-label="项目"></nav>
+<div class="sidebar-footer"><span class="status-dot"></span>公开资料 · 免登录查看<p>原型 · 文档 · 迭代记录</p></div>
+</aside>
+<div class="workspace">
+<header class="topbar"><div class="breadcrumb" id="breadcrumb">工作空间 / 项目总览</div><a class="repo-link" href="https://github.com/xiaocaipanzy-arch/PM" target="_blank" rel="noopener">版本记录 <span>↗</span></a></header>
+<main id="main" tabindex="-1">
+<section class="intro"><div><div class="eyebrow">PROJECT LIBRARY</div><h1 id="pageTitle">让每次迭代，都有迹可循。</h1><p id="pageDescription">选择一个项目，从想法到原型，在这里找到最新资料。</p></div><div class="intro-mark" aria-hidden="true"><span>↗</span><small>BUILD · REVIEW · ITERATE</small></div></section>
+<section id="projectsSection" aria-labelledby="projectsTitle"><div class="section-heading"><h2 id="projectsTitle">项目空间 <span id="projectCount"></span></h2><span class="subtle">按项目归档，按功能迭代</span></div><div id="projectCards" class="project-grid"></div></section>
+<section class="library" aria-labelledby="resourcesTitle"><div class="section-heading resources-heading"><div><h2 id="resourcesTitle">全部资料 <span id="resourceCount"></span></h2><p id="resourceHint" class="subtle">浏览已公开的原型与配套资料</p></div><button id="shareButton" class="button secondary" type="button">↗ 分享当前页面</button></div>
+<div id="featureNav" class="feature-nav" aria-label="功能筛选"></div>
+<div class="toolbar"><div id="typeTabs" class="type-tabs" role="group" aria-label="资料类型"></div><label class="search"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="搜索资料或功能名称" aria-label="搜索资料或功能名称" autocomplete="off"></label></div>
+<p id="resultSummary" class="sr-only" role="status" aria-live="polite"></p>
+<div id="resourceList" class="resource-list"></div>
+<div id="emptyState" class="empty-state" hidden><div aria-hidden="true">▤</div><h3 id="emptyTitle"></h3><p id="emptyDescription"></p><button id="clearFilters" class="button secondary" type="button" hidden>清除筛选</button></div>
+</section>
+<footer class="page-footer"><span>PM · 项目资料站</span><span>仅展示已公开资料 · 原型中的业务操作为演示</span></footer>
 </main>
-<dialog id="sourcesDialog" aria-labelledby="sourcesTitle"><header><h2 id="sourcesTitle">项目与历史资料</h2><button id="closeSources" type="button" aria-label="关闭更多资料">×</button></header><div class="sources-body"><section><h3>当前项目的功能</h3><nav id="featureLinks"></nav></section><section><h3>其他项目</h3><nav id="projectLinks"></nav></section><section><h3>版本来源</h3><a class="source-link" href="https://github.com/xiaocaipanzy-arch/PM/commits/main/" target="_blank" rel="noopener">查看 Git 版本记录 ↗</a></section></div></dialog>
-<div id="toast" role="status" aria-live="polite" hidden></div>
-<noscript>请启用 JavaScript 查看原型与 PRD。</noscript>
+</div>
+</div>
+<dialog id="documentDialog" aria-labelledby="documentTitle"><header class="document-header"><div><div id="documentMeta" class="eyebrow"></div><h2 id="documentTitle"></h2></div><button id="closeDocument" class="icon-button" type="button" aria-label="关闭文档">×</button></header><div id="documentBody" class="markdown"></div><footer class="document-footer"><a id="documentDownload" class="button secondary" download>下载文件 ↓</a><a id="documentRaw" target="_blank" rel="noopener">查看原文件 ↗</a></footer></dialog>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<noscript><p>资料站需要 JavaScript 才能搜索与筛选。你仍可直接<a href="元游猫/APP2.0/">打开元游猫 APP2.0 原型</a>。</p></noscript>
 </body></html>

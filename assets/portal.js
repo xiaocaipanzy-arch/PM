@@ -1,64 +1,113 @@
 'use strict';
 (() => {
- const catalog=window.PM_CATALOG,$=id=>document.getElementById(id);
- const base=new URL('../',document.querySelector('script[src*="assets/portal.js"]').src);
- const href=path=>new URL(path,base).href;
- const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- let projectId='',featureId='',resourceId='',query='',category='all',documentKey='',request,timer;
- const frames=new Map();
- function project(){return catalog.projects.find(p=>p.id===projectId);}
- function feature(){return project()?.features.find(f=>f.id===featureId);}
- function resource(){return feature()?.resources.find(r=>r.id===resourceId);}
- function kind(r){if(r.type==='prd'||/PRD/i.test(r.title))return 'prd';if(r.type==='prototype')return 'prototype';if(/report|research|调研|竞品/i.test(r.type+' '+r.title))return 'research';if(/history|archive|历史|归档/i.test(r.type+' '+r.title))return 'history';return 'other';}
- const labels={prototype:'原型',prd:'PRD',research:'调研报告',history:'历史资料',other:'其他资料'};
- function isHtml(r){return r.format==='html'||/html/.test(r.type)||/\.html?(?:[?#]|$)/i.test(r.file||r.path)||r.type==='prototype';}
- function route(p=projectId,f=featureId,r=resourceId){const u=new URL(base);u.searchParams.set('project',p);if(f)u.searchParams.set('feature',f);if(f&&r)u.searchParams.set('resource',r);return u;}
- function readRoute(){const p=new URLSearchParams(location.search);projectId=p.get('project')||(location.pathname!==base.pathname?document.body.dataset.initialProject:'')||catalog.defaultProject||catalog.projects[0]?.id||'';if(!project())projectId=catalog.projects[0]?.id||'';featureId=p.get('feature')||'';if(!feature())featureId='';const f=feature();resourceId=p.get('resource')||f?.resources.find(r=>r.type===p.get('view'))?.id||f?.resources[0]?.id||'';if(f&&!resource())resourceId=f.resources[0]?.id||'';render();}
- function toast(text){$('toast').textContent=text;$('toast').hidden=false;clearTimeout(timer);timer=setTimeout(()=>$('toast').hidden=true,2500);}
- function navigate(p,f='',r=''){projectId=p;featureId=f;resourceId=r||feature()?.resources[0]?.id||'';query='';category='all';$('contentSearch').value='';$('sourcesDialog').close();history.pushState(null,'',route());render();}
- function selectResource(id,push=true){resourceId=id;if(push)history.pushState(null,'',route());render();}
- function render(){const p=project(),f=feature(),r=resource();document.title=(p?.name||'项目')+(f?' · '+f.name:' · 项目内容')+(r?' · '+r.title:'');$('projectTitle').textContent=p?.name||'项目';$('featureTitle').textContent=f?.name||'项目内容';$('version').textContent=f?.version||r?.version||'';$('version').hidden=!f||!$('version').textContent;$('projectHome').href=route(projectId,'','');$('backOverview').href=route(projectId,'','');
-  $('overview').hidden=!!f;$('contentToolbar').hidden=!f;$('projectEmpty').hidden=true;
-  $('prototypePanel').hidden=!r||!isHtml(r);$('prdPanel').hidden=!r||isHtml(r);
-  $('contentStatus').textContent=r?.status||'';$('downloadFile').hidden=!r;if(r)$('downloadFile').href=href(r.file||r.path);
-  $('viewTabs').innerHTML=(f?.resources||[]).map(item=>`<button type="button" role="tab" data-resource="${escape(item.id)}" aria-selected="${item.id===resourceId}" tabindex="${item.id===resourceId?0:-1}">${escape(item.title||labels[kind(item)])}</button>`).join('');
-  for(const frame of frames.values())frame.hidden=true;
-  if(r&&isHtml(r)){const key=href(r.file||r.path);let frame=frames.get(key);if(!frame){frame=document.createElement('iframe');frame.title=(f?.name||'')+' · '+r.title;frame.referrerPolicy='same-origin';frame.src=key;$('embedFrames').append(frame);frames.set(key,frame);}frame.hidden=false;}
-  const nextDocument=r&&!isHtml(r)?href(r.path):'';
-  if(nextDocument&&documentKey!==nextDocument){if(request)request.abort();documentKey=nextDocument;$('documentBody').replaceChildren();$('prdPanel').scrollTop=0;loadDocument(r);}
-  if(!f)renderOverview();
-  $('featureLinks').innerHTML=p?.features.length?p.features.map(i=>`<a href="${escape(route(projectId,i.id,i.resources[0]?.id||'').href)}" data-project="${p.id}" data-feature="${i.id}" class="source-link">${escape(i.name)}<small>${i.resources.length} 份资料</small></a>`).join(''):'<p class="no-sources">暂无功能资料</p>';
-  $('projectLinks').innerHTML=catalog.projects.filter(i=>i.id!==projectId).map(i=>`<a href="${escape(route(i.id,'','').href)}" data-project="${i.id}" class="source-link">${escape(i.name)}<small>${i.features.length} 项内容</small></a>`).join('')||'<p class="no-sources">暂无其他项目</p>';
- }
- function renderOverview(){const p=project();const features=p?.features||[];const all=features.flatMap(f=>f.resources);$('overviewSummary').textContent=`${features.length} 项内容 · ${all.length} 份资料`;
-  $('categoryFilters').innerHTML=[['all','全部'],...Object.entries(labels)].filter(([id])=>id==='all'||all.some(r=>kind(r)===id)).map(([id,label])=>`<button type="button" data-category="${id}" aria-pressed="${category===id}">${label}<small>${id==='all'?all.length:all.filter(r=>kind(r)===id).length}</small></button>`).join('');
-  const search=query.trim().toLowerCase();const entries=features.map(f=>({feature:f,resources:f.resources.filter(r=>(category==='all'||kind(r)===category)&&(!search||[f.name,f.description,r.title,r.description,r.version].join(' ').toLowerCase().includes(search)))})).filter(i=>i.resources.length);
-  $('overviewCards').innerHTML=entries.map(({feature:f,resources:rs})=>`<article class="overview-card"><div class="card-heading"><span class="card-type">${escape([...new Set(rs.map(r=>labels[kind(r)]))].join(' / '))}</span><span class="card-version">${escape(f.version||rs[0]?.version||'')}</span></div><h3><a href="${escape(route(projectId,f.id,rs[0].id).href)}" data-open-feature="${escape(f.id)}" data-open-resource="${escape(rs[0].id)}">${escape(f.name)}</a></h3>${f.description?`<p>${escape(f.description)}</p>`:''}<div class="card-resources">${rs.map(r=>`<a href="${escape(route(projectId,f.id,r.id).href)}" data-open-feature="${escape(f.id)}" data-open-resource="${escape(r.id)}">${escape(r.title||labels[kind(r)])}<span>↗</span></a>`).join('')}</div></article>`).join('');
-  $('overviewEmpty').hidden=!!entries.length;$('overviewEmptyText').textContent=search||category!=='all'?'请调整搜索或内容类型。':'当前项目还没有登记的公开资料。';
- }
- function inline(text,parent){const re=/(\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)]+)\))/g;let cursor=0;
-  for(const m of text.matchAll(re)){parent.append(document.createTextNode(text.slice(cursor,m.index)));let node;if(m[2]){node=document.createElement('strong');node.textContent=m[2];}else if(m[3]){node=document.createElement('code');node.textContent=m[3];}else{let url;try{url=new URL(m[5],base);}catch{}node=document.createElement(url&&['http:','https:'].includes(url.protocol)?'a':'span');node.textContent=m[4];if(node.tagName==='A'){node.href=url.href;node.target='_blank';node.rel='noopener';}}parent.append(node);cursor=m.index+m[0].length;}parent.append(document.createTextNode(text.slice(cursor)));
- }
- function markdown(text){
-  const fragment=document.createDocumentFragment();const lines=text.replace(/\r/g,'').replace(/^---\n[\s\S]*?\n---\n/,'').split('\n');let list,code,paragraph;
-  const cells=line=>line.trim().replace(/^\||\|$/g,'').split(/(?<!\\)\|/).map(c=>c.trim().replace(/\\\|/g,'|'));
-  const separator=line=>/^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
-  for(let i=0;i<lines.length;i++){const line=lines[i];
-   if(line.startsWith('```')){list=null;paragraph=null;if(code)code=null;else{const pre=document.createElement('pre');code=document.createElement('code');pre.append(code);fragment.append(pre);}continue;}
-   if(code){code.textContent+=line+'\n';continue;}if(!line.trim()){list=null;paragraph=null;continue;}
-   if(line.includes('|')&&separator(lines[i+1]||'')){list=null;paragraph=null;const wrap=document.createElement('div');wrap.className='table-wrap';const table=document.createElement('table'),head=document.createElement('thead'),row=document.createElement('tr');for(const value of cells(line)){const th=document.createElement('th');inline(value,th);row.append(th);}head.append(row);table.append(head);const body=document.createElement('tbody');i+=2;for(;i<lines.length&&lines[i].trim().includes('|');i++){const tr=document.createElement('tr');for(const value of cells(lines[i])){const td=document.createElement('td');inline(value,td);tr.append(td);}body.append(tr);}i--;table.append(body);wrap.append(table);fragment.append(wrap);continue;}
-   const heading=line.match(/^(#{1,6})\s+(.+)/);if(heading){list=null;paragraph=null;const node=document.createElement('h'+heading[1].length);inline(heading[2],node);fragment.append(node);continue;}
-   const item=line.match(/^\s*(?:[-*]|\d+\.)\s+(.+)/);if(item){paragraph=null;const tag=/^\s*\d/.test(line)?'ol':'ul';if(!list||list.tagName.toLowerCase()!==tag){list=document.createElement(tag);fragment.append(list);}const li=document.createElement('li');inline(item[1],li);list.append(li);continue;}
-   list=null;if(!paragraph){paragraph=document.createElement('p');fragment.append(paragraph);}else paragraph.append(' ');inline(line,paragraph);
-  }return fragment;
- }
-
-
- async function loadDocument(resource){const controller=new AbortController();request=controller;$('documentBody').textContent='正在加载…';try{const response=await fetch(href(resource.path),{signal:controller.signal});if(!response.ok)throw Error('HTTP '+response.status);const text=await response.text();if(!controller.signal.aborted)$('documentBody').replaceChildren(markdown(text));}catch(e){if(e.name!=='AbortError'){$('documentBody').textContent='加载失败。';const retry=document.createElement('button');retry.type='button';retry.textContent='重试';retry.addEventListener('click',()=>loadDocument(resource));$('documentBody').append(retry);}}}
- document.addEventListener('click',event=>{const open=event.target.closest('[data-open-feature]');if(open){event.preventDefault();navigate(projectId,open.dataset.openFeature,open.dataset.openResource);return;}const link=event.target.closest('a[data-project]');if(link){event.preventDefault();navigate(link.dataset.project,link.dataset.feature||'');return;}const tab=event.target.closest('[data-resource]');if(tab&&tab.dataset.resource!==resourceId){selectResource(tab.dataset.resource);return;}const filter=event.target.closest('[data-category]');if(filter){category=filter.dataset.category;renderOverview();return;}if(event.target.closest('#backOverview,#projectHome')){event.preventDefault();navigate(projectId);}});
- $('viewTabs').addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const items=feature()?.resources||[];let index=items.findIndex(r=>r.id===resourceId);index=event.key==='Home'?0:event.key==='End'?items.length-1:(index+(event.key==='ArrowRight'?1:-1)+items.length)%items.length;if(items[index]){selectResource(items[index].id);$('viewTabs').querySelector('[aria-selected="true"]').focus();}}});
- $('sourcesButton').addEventListener('click',()=>$('sourcesDialog').showModal());$('closeSources').addEventListener('click',()=>$('sourcesDialog').close());
- $('contentSearch').addEventListener('input',event=>{query=event.target.value;renderOverview();});
- $('shareButton').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(route().href);toast('链接已复制');}catch{toast('请复制地址栏中的链接');}});
- window.addEventListener('popstate',readRoute);readRoute();
+  const catalog = {projects:window.PM_CATALOG.projects.map(p=>({...p,description:p.description||'',features:p.features.map(f=>({...f,resources:f.resources.map(r=>({...r,type:r.type==='prd'?'document':r.type,updated:r.updated||'—',dateLabel:r.dateLabel||'更新于'}))}))}))};
+  const types = {all:'全部',prototype:'交互原型',document:'文档说明',changelog:'更新记录'};
+  const icons = {prototype:'◇',document:'▤',changelog:'↺'};
+  const isPage = resource => resource.type==='prototype'||resource.format==='html';
+  const params = new URLSearchParams(location.search);
+  const state = {project:params.get('project') || '',feature:params.get('feature') || '',type:'all',query:''};
+  if (!catalog.projects.some(p=>p.id===state.project)) state.project='';
+  const $ = id => document.getElementById(id);
+  const escape = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const allResources = catalog.projects.flatMap(project=>project.features.flatMap(feature=>feature.resources.map(r=>({...r,project:project.id,projectName:project.name,feature:feature.id,featureName:feature.name}))));
+  const href = path => new URL(path,location.href.split('?')[0]).href;
+  const route = (project='',feature='',resource='') => {
+    const item=catalog.projects.find(p=>p.id===project);
+    const url = item?new URL(encodeURIComponent(item.name)+'/',new URL('./',location.href)):new URL('./',location.href);
+    if(feature)url.searchParams.set('feature',feature);
+    if(resource)url.searchParams.set('resource',resource);
+    return url.pathname+url.search;
+  };
+  const projectResources = () => allResources.filter(r=>(!state.project||r.project===state.project)&&(!state.feature||r.feature===state.feature));
+  let toastTimer, documentRequest;
+  function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,3200);}
+  function resetRoute(project='',feature='') {
+    if($('documentDialog').open)$('documentDialog').close();
+    state.project=project;state.feature=feature;state.query='';state.type='all';$('searchInput').value='';
+    history.pushState(null,'',route(project,feature));render();
+  }
+  function render(){
+    const project=catalog.projects.find(p=>p.id===state.project);
+    if(state.feature&&!project?.features.some(f=>f.id===state.feature))state.feature='';
+    const feature=project?.features.find(f=>f.id===state.feature);
+    document.title=(project?`${project.name}${feature?' · '+feature.name:''}`:'项目总览')+' · PM 项目资料站';
+    $('breadcrumb').textContent='工作空间 / '+(project?project.name+(feature?' / '+feature.name:''):'项目总览');
+    $('pageTitle').textContent=project?project.name+(feature?' / '+feature.name:''):'让每次迭代，都有迹可循。';
+    $('pageDescription').textContent=feature?feature.description:project?project.description:'选择一个项目，从想法到原型，在这里找到最新资料。';
+    $('projectNav').innerHTML=`<a href="${route()}" class="nav-link ${!project?'active':''}" ${!project?'aria-current="page"':''} data-project=""><span class="nav-symbol">▦</span>项目总览<span class="nav-count">${catalog.projects.length}</span></a><div class="nav-divider"></div>`+catalog.projects.map(p=>`<a href="${route(p.id)}" data-project="${p.id}" class="nav-link ${state.project===p.id?'active':''}" ${state.project===p.id?'aria-current="page"':''}><span class="nav-symbol">${escape(p.initial)}</span>${escape(p.name)}<span class="nav-count">${allResources.filter(r=>r.project===p.id).length}</span></a>`).join('');
+    $('projectsSection').hidden=!!project;
+    $('projectCount').textContent=catalog.projects.length;
+    $('projectCards').innerHTML=catalog.projects.map(p=>{
+      const resources=allResources.filter(r=>r.project===p.id);
+      return `<a href="${route(p.id)}" data-project="${p.id}" class="project-card"><div class="project-card-top"><span class="project-icon ${p.color==='purple'?'purple':''}">${escape(p.initial)}</span><div><h3>${escape(p.name)}</h3><div class="mini-status">${resources.length?'资料已发布':'等待首份资料'}</div></div></div><p>${escape(p.description)}</p><div class="project-card-bottom"><span><strong>${p.features.length}</strong> 个功能</span><span><strong>${resources.length}</strong> 份资料</span><span class="project-arrow">↗</span></div></a>`;
+    }).join('');
+    const base=projectResources();
+    $('resourcesTitle').firstChild.textContent=feature?'功能资料 ':project?'项目资料 ':'全部资料 ';
+    $('resourceCount').textContent=base.length;
+    $('resourceHint').textContent=project?(base.length?'按功能浏览，快速找到所需资料':'已建立独立项目目录，资料发布后将在此展示'):'浏览已公开的原型与配套资料';
+    $('featureNav').innerHTML=project&&project.features.length?`<button class="feature-chip ${!feature?'active':''}" data-feature="" type="button" aria-pressed="${!feature}">全部功能</button>`+project.features.map(f=>`<button class="feature-chip ${state.feature===f.id?'active':''}" data-feature="${f.id}" type="button" aria-pressed="${state.feature===f.id}">${escape(f.name)}</button>`).join(''):'';
+    renderResources();
+  }
+  function renderResources(){
+    const base=projectResources();
+    $('typeTabs').innerHTML=Object.entries(types).map(([id,label])=>`<button type="button" data-type="${id}" class="type-tab ${state.type===id?'active':''}" aria-pressed="${state.type===id}">${label}<small>${base.filter(r=>id==='all'||r.type===id).length}</small></button>`).join('');
+    const query=state.query.trim().toLowerCase();
+    const matches=base.filter(r=>(state.type==='all'||r.type===state.type)&&(!query||[r.title,r.description,r.projectName,r.featureName,r.version].join(' ').toLowerCase().includes(query)));
+    $('resultSummary').textContent=`找到 ${matches.length} 份资料`;
+    $('resourceList').innerHTML=matches.map(r=>`<article class="resource-row"><span class="file-icon ${r.type}" aria-hidden="true">${icons[r.type]}</span><div><${isPage(r)?'a':'button'} ${isPage(r)?`href="${escape(href(r.path))}" target="_blank" rel="noopener"`:`type="button" data-document="${r.id}"`} class="resource-title">${escape(r.title)}<span class="resource-version">${escape(r.version)}</span></${isPage(r)?'a':'button'}><p class="resource-context">${escape(r.projectName)} <span aria-hidden="true">/</span> ${escape(r.featureName)}</p><p class="resource-type">${types[r.type]} · ${escape(r.status)}<span class="mobile-date"> · ${escape(r.updated)}</span></p></div><div class="resource-status"><span class="badge ${r.type}">${escape(r.status)}</span></div><div class="resource-date"><small>${escape(r.dateLabel)}</small><time datetime="${r.updated}">${escape(r.updated)}</time></div><div class="resource-actions">${isPage(r)?`<a class="open-button" href="${escape(href(r.path))}" target="_blank" rel="noopener" aria-label="打开${escape(r.title)}">打开 ↗</a>`:`<button class="open-button" type="button" data-document="${r.id}" aria-label="阅读${escape(r.title)}">阅读 ↗</button>`}<a class="download-button" href="${escape(href(r.file||r.path))}" download aria-label="下载${escape(r.title)}" title="下载文件">↓</a></div></article>`).join('');
+    $('emptyState').hidden=!!matches.length;
+    const filtered=!!query||state.type!=='all';
+    $('emptyTitle').textContent=filtered?'没有找到匹配的资料':'这个项目的第一份资料，即将到来';
+    $('emptyDescription').textContent=filtered?'试试其他关键词，或清除筛选查看全部资料。':'当前暂无公开文件。加入原型或文档后，会在这里按功能展示。';
+    $('clearFilters').hidden=!filtered;
+  }
+  function inline(text,parent){
+    const pattern=/(\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)]+)\))/g;let cursor=0;
+    for(const match of text.matchAll(pattern)){
+      parent.append(document.createTextNode(text.slice(cursor,match.index)));let node;
+      if(match[2]){node=document.createElement('strong');node.textContent=match[2];}
+      else if(match[3]){node=document.createElement('code');node.textContent=match[3];}
+      else{const url=new URL(match[5],location.href);node=document.createElement(url.protocol==='https:'||url.protocol==='http:'?'a':'span');node.textContent=match[4];if(node.tagName==='A'){node.href=url.href;node.target='_blank';node.rel='noopener';}}
+      parent.append(node);cursor=match.index+match[0].length;
+    }
+    parent.append(document.createTextNode(text.slice(cursor)));
+  }
+  function markdown(text){
+    const fragment=document.createDocumentFragment();let list=null,code=null,paragraph=null;
+    for(const line of text.replace(/\r/g,'').split('\n')){
+      if(line.startsWith('```')){list=null;paragraph=null;if(code){code=null;}else{const pre=document.createElement('pre');code=document.createElement('code');pre.append(code);fragment.append(pre);}continue;}
+      if(code){code.textContent+=line+'\n';continue;}
+      if(!line.trim()){list=null;paragraph=null;continue;}
+      const heading=line.match(/^(#{1,3})\s+(.+)/);
+      if(heading){list=null;paragraph=null;const node=document.createElement('h'+heading[1].length);inline(heading[2],node);fragment.append(node);continue;}
+      const item=line.match(/^\s*(?:[-*]|\d+\.)\s+(.+)/);
+      if(item){paragraph=null;const tag=/^\s*\d/.test(line)?'ol':'ul';if(!list||list.tagName.toLowerCase()!==tag){list=document.createElement(tag);fragment.append(list);}const li=document.createElement('li');inline(item[1],li);list.append(li);continue;}
+      list=null;if(!paragraph){paragraph=document.createElement('p');fragment.append(paragraph);}else paragraph.append(' ');inline(line,paragraph);
+    }
+    return fragment;
+  }
+  async function openDocument(id,updateUrl=true){
+    const resource=allResources.find(r=>r.id===id&&!isPage(r));if(!resource){toast('这份资料暂不可用，请从列表重新选择。');return;}
+    if(documentRequest)documentRequest.abort();const controller=new AbortController();documentRequest=controller;
+    $('documentTitle').textContent=resource.title;$('documentMeta').textContent=resource.projectName+' / '+resource.featureName+' · '+resource.version;
+    $('documentBody').textContent='正在读取文档…';$('documentDownload').href=href(resource.path);$('documentRaw').href=href(resource.path);
+    if(!$('documentDialog').open)$('documentDialog').showModal();
+    if(updateUrl)history.replaceState(null,'',route(state.project,state.feature,id));
+    try{const response=await fetch(href(resource.path),{signal:controller.signal});if(!response.ok)throw Error('HTTP '+response.status);const text=await response.text();if(controller.signal.aborted)return;$('documentBody').replaceChildren(markdown(text));}
+    catch(error){if(error.name==='AbortError')return;const p=document.createElement('p');p.textContent='文档暂时未能加载。请稍后重试，或点击下方“查看原文件”。';$('documentBody').replaceChildren(p);}
+  }
+  document.addEventListener('click',event=>{
+    const project=event.target.closest('[data-project]');if(project){event.preventDefault();if(project.dataset.project)location.assign(route(project.dataset.project));else resetRoute();return;}
+    const feature=event.target.closest('[data-feature]');if(feature){resetRoute(state.project,feature.dataset.feature);return;}
+    const type=event.target.closest('[data-type]');if(type){state.type=type.dataset.type;renderResources();$('typeTabs').querySelector(`[data-type="${state.type}"]`).focus();return;}
+    const resource=event.target.closest('[data-document]');if(resource)openDocument(resource.dataset.document);
+  });
+  $('searchInput').addEventListener('input',event=>{state.query=event.target.value;renderResources();});
+  $('clearFilters').addEventListener('click',()=>{state.query='';state.type='all';$('searchInput').value='';renderResources();$('searchInput').focus();});
+  $('closeDocument').addEventListener('click',()=>$('documentDialog').close());
+  $('documentDialog').addEventListener('close',()=>{if(documentRequest)documentRequest.abort();if(new URLSearchParams(location.search).has('resource'))history.replaceState(null,'',route(state.project,state.feature));});
+  $('shareButton').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(location.href);toast('页面链接已复制，可以直接分享给他人。');}catch{toast('请复制浏览器地址栏中的链接进行分享。');}});
+  window.addEventListener('popstate',()=>{const p=new URLSearchParams(location.search);if($('documentDialog').open)$('documentDialog').close();state.project=catalog.projects.some(i=>i.id===p.get('project'))?p.get('project'):'';state.feature=p.get('feature')||'';state.query='';state.type='all';$('searchInput').value='';render();if(p.get('resource'))openDocument(p.get('resource'),false);});
+  if(state.project){location.replace(route(state.project,state.feature,params.get('resource')||''));return;}
+  render();if(params.get('resource'))openDocument(params.get('resource'),false);
 })();
