@@ -21,7 +21,7 @@
  function render(){const p=project(),f=feature(),r=resource();document.title=(p?.name||'项目')+(f?' · '+f.name:' · 项目内容')+(r?' · '+r.title:'');$('projectTitle').textContent=p?.name||'项目';$('featureTitle').textContent=f?.name||'项目内容';$('version').textContent=f?.version||r?.version||'';$('version').hidden=!f||!$('version').textContent;$('backOverview').href=route(projectId,'','');
   $('overview').hidden=!!f;$('contentToolbar').hidden=!f;$('projectEmpty').hidden=true;
   $('prototypePanel').hidden=!r||!isHtml(r);$('prdPanel').hidden=!r||isHtml(r);
-  $('contentStatus').textContent=r?.status||'';$('downloadFile').hidden=!r;if(r)$('downloadFile').href=href(r.file||r.path);
+  $('contentStatus').textContent=r?.status||'';$('downloadFile').hidden=!r||r.downloadable===false;if(r)$('downloadFile').href=href(r.file||r.path);
   $('viewTabs').innerHTML=(f?.resources||[]).map(item=>`<button type="button" role="tab" data-resource="${escape(item.id)}" aria-selected="${item.id===resourceId}" tabindex="${item.id===resourceId?0:-1}">${escape(item.title||labels[kind(item)])}</button>`).join('');
   for(const frame of frames.values())frame.hidden=true;
   if(r&&isHtml(r)){const key=href(r.file||r.path);let frame=frames.get(key);if(!frame){frame=document.createElement('iframe');frame.title=(f?.name||'')+' · '+r.title;frame.referrerPolicy='same-origin';frame.src=key;$('embedFrames').append(frame);frames.set(key,frame);}frame.hidden=false;}

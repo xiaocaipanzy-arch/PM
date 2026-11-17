@@ -47,6 +47,7 @@ window.PM_CATALOG = {
           "resources": [
             {
               "id": "zuhaowan-cs2-research",
+              "downloadable": false,
               "title": "租号玩 CS2 产品体验调研",
               "type": "document",
               "format": "html",
