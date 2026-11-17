@@ -1,7 +1,7 @@
 'use strict';
 (() => {
  const catalog=window.PM_CATALOG,$=id=>document.getElementById(id);
- const base=new URL('../',document.querySelector('script[src$="assets/portal.js"]').src);
+ const base=new URL('../',document.querySelector('script[src*="assets/portal.js"]').src);
  const href=path=>new URL(path,base).href;
  const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  let projectId='',featureId='',resourceId='',query='',category='all',documentKey='',request,timer;
