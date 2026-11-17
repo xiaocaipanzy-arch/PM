@@ -8,6 +8,10 @@ window.PM_CATALOG = {
         {id:'app2-changelog',title:'资料迭代记录',type:'changelog',version:'v1.0',updated:'2026-11-17',dateLabel:'更新于',status:'资料记录',description:'记录资料迁移、页面发布和后续原型变更。',path:'元游猫/APP2.0/更新记录.md'}
       ]}
     ]},
-    {id:'5e',name:'5E',initial:'5E',color:'purple',description:'项目空间已建立，等待加入首份公开资料。',features:[]}
+    {id:'5e',name:'5E',initial:'5E',color:'purple',description:'租号及相关功能的产品调研与公开资料。',features:[
+      {id:'competitor-research',name:'竞品调研',description:'PC 网页与客户端产品体验分析',resources:[
+        {id:'zuhaowan-cs2-research',title:'租号玩 CS2 产品体验调研',type:'document',format:'html',version:'2026.11.17',updated:'2026-11-17',dateLabel:'更新于',status:'对外调研报告',description:'7 个使用场景、14 张配图，并附与 5E 平台的功能对比。研究范围为公开 PC 页面与客户端官方说明。',path:'5E/竞品调研/租号玩CS2产品体验调研.html'}
+      ]}
+    ]}
   ]
 };

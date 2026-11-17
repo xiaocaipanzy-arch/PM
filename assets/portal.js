@@ -3,6 +3,7 @@
   const catalog = window.PM_CATALOG;
   const types = {all:'全部',prototype:'交互原型',document:'文档说明',changelog:'更新记录'};
   const icons = {prototype:'◇',document:'▤',changelog:'↺'};
+  const isPage = resource => resource.type==='prototype'||resource.format==='html';
   const params = new URLSearchParams(location.search);
   const state = {project:params.get('project') || '',feature:params.get('feature') || '',type:'all',query:''};
   if (!catalog.projects.some(p=>p.id===state.project)) state.project='';
@@ -53,7 +54,7 @@
     const query=state.query.trim().toLowerCase();
     const matches=base.filter(r=>(state.type==='all'||r.type===state.type)&&(!query||[r.title,r.description,r.projectName,r.featureName,r.version].join(' ').toLowerCase().includes(query)));
     $('resultSummary').textContent=`找到 ${matches.length} 份资料`;
-    $('resourceList').innerHTML=matches.map(r=>`<article class="resource-row"><span class="file-icon ${r.type}" aria-hidden="true">${icons[r.type]}</span><div><${r.type==='prototype'?'a':'button'} ${r.type==='prototype'?`href="${escape(href(r.path))}" target="_blank" rel="noopener"`:`type="button" data-document="${r.id}"`} class="resource-title">${escape(r.title)}<span class="resource-version">${escape(r.version)}</span></${r.type==='prototype'?'a':'button'}><p class="resource-context">${escape(r.projectName)} <span aria-hidden="true">/</span> ${escape(r.featureName)}</p><p class="resource-type">${types[r.type]} · ${escape(r.status)}<span class="mobile-date"> · ${escape(r.updated)}</span></p></div><div class="resource-status"><span class="badge ${r.type}">${escape(r.status)}</span></div><div class="resource-date"><small>${escape(r.dateLabel)}</small><time datetime="${r.updated}">${escape(r.updated)}</time></div><div class="resource-actions">${r.type==='prototype'?`<a class="open-button" href="${escape(href(r.path))}" target="_blank" rel="noopener" aria-label="打开${escape(r.title)}">打开 ↗</a>`:`<button class="open-button" type="button" data-document="${r.id}" aria-label="阅读${escape(r.title)}">阅读 ↗</button>`}<a class="download-button" href="${escape(href(r.file||r.path))}" download aria-label="下载${escape(r.title)}" title="下载文件">↓</a></div></article>`).join('');
+    $('resourceList').innerHTML=matches.map(r=>`<article class="resource-row"><span class="file-icon ${r.type}" aria-hidden="true">${icons[r.type]}</span><div><${isPage(r)?'a':'button'} ${isPage(r)?`href="${escape(href(r.path))}" target="_blank" rel="noopener"`:`type="button" data-document="${r.id}"`} class="resource-title">${escape(r.title)}<span class="resource-version">${escape(r.version)}</span></${isPage(r)?'a':'button'}><p class="resource-context">${escape(r.projectName)} <span aria-hidden="true">/</span> ${escape(r.featureName)}</p><p class="resource-type">${types[r.type]} · ${escape(r.status)}<span class="mobile-date"> · ${escape(r.updated)}</span></p></div><div class="resource-status"><span class="badge ${r.type}">${escape(r.status)}</span></div><div class="resource-date"><small>${escape(r.dateLabel)}</small><time datetime="${r.updated}">${escape(r.updated)}</time></div><div class="resource-actions">${isPage(r)?`<a class="open-button" href="${escape(href(r.path))}" target="_blank" rel="noopener" aria-label="打开${escape(r.title)}">打开 ↗</a>`:`<button class="open-button" type="button" data-document="${r.id}" aria-label="阅读${escape(r.title)}">阅读 ↗</button>`}<a class="download-button" href="${escape(href(r.file||r.path))}" download aria-label="下载${escape(r.title)}" title="下载文件">↓</a></div></article>`).join('');
     $('emptyState').hidden=!!matches.length;
     const filtered=!!query||state.type!=='all';
     $('emptyTitle').textContent=filtered?'没有找到匹配的资料':'这个项目的第一份资料，即将到来';
@@ -86,7 +87,7 @@
     return fragment;
   }
   async function openDocument(id,updateUrl=true){
-    const resource=allResources.find(r=>r.id===id&&r.type!=='prototype');if(!resource){toast('这份资料暂不可用，请从列表重新选择。');return;}
+    const resource=allResources.find(r=>r.id===id&&!isPage(r));if(!resource){toast('这份资料暂不可用，请从列表重新选择。');return;}
     if(documentRequest)documentRequest.abort();const controller=new AbortController();documentRequest=controller;
     $('documentTitle').textContent=resource.title;$('documentMeta').textContent=resource.projectName+' / '+resource.featureName+' · '+resource.version;
     $('documentBody').textContent='正在读取文档…';$('documentDownload').href=href(resource.path);$('documentRaw').href=href(resource.path);
