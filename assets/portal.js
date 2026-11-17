@@ -1,29 +1,31 @@
 'use strict';
 (() => {
- const catalog=window.PM_CATALOG, $=id=>document.getElementById(id);
- const script=document.querySelector('script[src$="assets/portal.js"]');
- const base=new URL('../',script.src);
- const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const catalog=window.PM_CATALOG,$=id=>document.getElementById(id);
+ const base=new URL('../',document.querySelector('script[src$="assets/portal.js"]').src);
  const href=path=>new URL(path,base).href;
- let projectId='',query='',request,timer;
- const resources=catalog.projects.flatMap(project=>project.features.flatMap(feature=>feature.resources.map(r=>({...r,project:project.id,feature:feature.name}))));
- function route(project='',resource=''){const u=new URL(base);if(project)u.searchParams.set('project',project);if(resource)u.searchParams.set('resource',resource);return u;}
- function selectedProject(){return catalog.projects.find(p=>p.id===projectId);}
- function readRoute(){const p=new URLSearchParams(location.search);projectId=p.get('project')||(location.pathname!==base.pathname?document.body.dataset.initialProject:'')||'';if(!selectedProject())projectId='';query='';$('searchInput').value='';render();if(p.get('resource'))openDocument(p.get('resource'),false);}
- function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(timer);timer=setTimeout(()=>$('toast').hidden=true,3000);}
- function navigate(project){if($('documentDialog').open)$('documentDialog').close();projectId=project;query='';$('searchInput').value='';history.pushState(null,'',route(project));render();}
- function render(){
-  const selected=selectedProject();document.title=(selected?selected.name:'项目资料')+' · PM';$('homeLink').href=route();
-  $('breadcrumb').textContent=selected?'项目 / '+selected.name:'项目';$('pageTitle').textContent=selected?selected.name:'项目资料';$('pageDescription').hidden=!!selected;
-  $('projectsSection').hidden=!!selected;$('library').hidden=!selected;
-  $('projectNav').innerHTML=`<a class="nav-link ${!selected?'active':''}" href="${route()}" data-project=""><span class="nav-symbol">▦</span>全部项目</a>`+catalog.projects.map(p=>`<a class="nav-link ${selected?.id===p.id?'active':''}" href="${route(p.id)}" data-project="${p.id}" ${selected?.id===p.id?'aria-current="page"':''}><span class="nav-symbol">${escape(p.initial)}</span>${escape(p.name)}<span class="nav-count">${p.features.length}</span></a>`).join('');
-  $('projectCards').innerHTML=catalog.projects.map(p=>`<a class="project-card" href="${route(p.id)}" data-project="${p.id}"><div class="project-card-top"><span class="project-icon ${p.color==='purple'?'purple':''}">${escape(p.initial)}</span><h3>${escape(p.name)}</h3><span class="project-arrow">↗</span></div><p>${p.features.length?p.features.length+' 个功能 · 原型 / PRD':'暂无功能资料'}</p></a>`).join('');renderFeatures();
- }
- function renderFeatures(){const project=selectedProject();if(!project)return;
-  const features=project.features.filter(f=>f.name.toLowerCase().includes(query.trim().toLowerCase()));
-  $('featureCount').textContent=project.features.length;$('resultSummary').textContent=`${features.length} 个功能`;
-  $('featureList').innerHTML=features.map(f=>`<article class="function-card"><header><h3>${escape(f.name)}</h3><span class="resource-version">${escape(f.version)}</span></header><div class="function-resources">`+['prototype','prd'].map(type=>{const r=f.resources.find(i=>i.type===type);if(!r)return `<div class="function-resource missing"><strong>${type==='prd'?'PRD':'原型'}</strong><span>待补充</span></div>`;return `<div class="function-resource"><div><strong>${type==='prd'?'PRD':'原型'}</strong><p>${escape(r.status)}</p></div><div class="file-actions">${type==='prototype'?`<a class="open-button" href="${escape(href(r.path))}" target="_blank" rel="noopener" aria-label="打开${escape(f.name)}原型">打开原型 ↗</a>`:`<button class="open-button" type="button" data-document="${r.id}" aria-label="查看${escape(f.name)} PRD">查看 PRD ↗</button>`}<a class="download-button" href="${escape(href(r.path))}" download aria-label="下载${escape(f.name)}${type==='prd'?'PRD':'原型'}">↓</a></div></div>`;}).join('')+'</div></article>').join('');
-  $('emptyState').hidden=!!features.length;$('emptyTitle').textContent=query.trim()?'未找到匹配功能':'暂无功能资料';$('clearFilters').hidden=!query.trim();
+ const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ let projectId='',featureId='',view='prototype',prototypeKey='',documentKey='',request,timer;
+ function project(){return catalog.projects.find(p=>p.id===projectId);}
+ function feature(){return project()?.features.find(f=>f.id===featureId);}
+ function route(){const u=new URL(base);u.searchParams.set('project',projectId);if(featureId)u.searchParams.set('feature',featureId);u.searchParams.set('view',view);return u;}
+ function readRoute(){const p=new URLSearchParams(location.search);projectId=p.get('project')||(location.pathname!==base.pathname?document.body.dataset.initialProject:'')||catalog.projects[0]?.id||'';if(!project())projectId=catalog.projects[0]?.id||'';featureId=p.get('feature')||project()?.features[0]?.id||'';if(!feature())featureId=project()?.features[0]?.id||'';view=p.get('view')==='prd'||p.get('resource')==='app2-prd'?'prd':'prototype';render();}
+ function toast(text){$('toast').textContent=text;$('toast').hidden=false;clearTimeout(timer);timer=setTimeout(()=>$('toast').hidden=true,2500);}
+ function navigate(p,f){projectId=p;featureId=f||project()?.features[0]?.id||'';view='prototype';$('sourcesDialog').close();history.pushState(null,'',route());render();}
+ function selectView(value,push=true){view=value;if(push)history.pushState(null,'',route());render();}
+ function render(){const p=project(),f=feature();document.title=(p?.name||'项目')+(f?' · '+f.name:'')+' · '+(view==='prd'?'PRD':'原型');$('projectTitle').textContent=p?.name||'项目';$('featureTitle').textContent=f?.name||'';$('version').textContent=f?.version||'';$('version').hidden=!f;
+  $('contentToolbar').hidden=!f;$('projectEmpty').hidden=!!f;$('emptyTitle').textContent=p?.name||'项目';
+  $('prototypePanel').hidden=!f||view!=='prototype';$('prdPanel').hidden=!f||view!=='prd';
+  for(const id of ['prototype','prd']){const tab=$(id+'Tab');tab.setAttribute('aria-selected',String(view===id));tab.tabIndex=view===id?0:-1;}
+  const current=f?.resources.find(r=>r.type===view);$('contentStatus').textContent=current?.status||'';$('downloadFile').hidden=!current;if(current)$('downloadFile').href=href(current.path);
+  const proto=f?.resources.find(r=>r.type==='prototype');const nextKey=proto?href(proto.path):'';
+  if(prototypeKey!==nextKey){prototypeKey=nextKey;const frame=document.createElement('iframe');frame.id='prototypeFrame';frame.title='项目交互原型';frame.referrerPolicy='same-origin';$('prototypeFrame').replaceWith(frame);}
+  $('prototypeFrame').hidden=!proto;$('prototypeEmpty').hidden=!!proto;
+  if(view==='prototype'&&proto&&!$('prototypeFrame').hasAttribute('src'))$('prototypeFrame').src=prototypeKey;
+  const prd=f?.resources.find(r=>r.type==='prd');const nextDocument=prd?href(prd.path):'';
+  if(documentKey!==nextDocument){if(request)request.abort();documentKey=nextDocument;$('documentBody').replaceChildren();$('prdPanel').scrollTop=0;}
+  if(view==='prd'&&f&&(!$('documentBody').hasChildNodes())){if(prd)loadDocument(prd);else $('documentBody').textContent='暂无 PRD';}
+  $('featureLinks').innerHTML=p?.features.length?p.features.map(i=>`<a href="${escape(new URL('?project='+p.id+'&feature='+i.id+'&view=prototype',base).href)}" data-project="${p.id}" data-feature="${i.id}" class="source-link">${escape(i.name)}<small>${escape(i.version)}</small></a>`).join(''):'<p class="no-sources">暂无功能资料</p>';
+  $('projectLinks').innerHTML=catalog.projects.filter(i=>i.id!==projectId).map(i=>`<a href="${escape(new URL('?project='+i.id,base).href)}" data-project="${i.id}" class="source-link">${escape(i.name)}<small>${i.features.length?'查看项目':'暂无资料'}</small></a>`).join('');
  }
  function inline(text,parent){const re=/(\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)]+)\))/g;let cursor=0;
   for(const m of text.matchAll(re)){parent.append(document.createTextNode(text.slice(cursor,m.index)));let node;if(m[2]){node=document.createElement('strong');node.textContent=m[2];}else if(m[3]){node=document.createElement('code');node.textContent=m[3];}else{let url;try{url=new URL(m[5],base);}catch{}node=document.createElement(url&&['http:','https:'].includes(url.protocol)?'a':'span');node.textContent=m[4];if(node.tagName==='A'){node.href=url.href;node.target='_blank';node.rel='noopener';}}parent.append(node);cursor=m.index+m[0].length;}parent.append(document.createTextNode(text.slice(cursor)));
@@ -41,13 +43,12 @@
    list=null;if(!paragraph){paragraph=document.createElement('p');fragment.append(paragraph);}else paragraph.append(' ');inline(line,paragraph);
   }return fragment;
  }
- async function openDocument(id,updateUrl=true){const r=resources.find(i=>i.id===id&&i.type==='prd');if(!r){toast('PRD 暂不可用');return;}if(request)request.abort();const controller=new AbortController();request=controller;
-  $('documentTitle').textContent=r.feature+' · PRD '+r.version;$('documentMeta').textContent=r.status+(r.updated?' · 文档更新 '+r.updated:'');$('documentBody').textContent='正在加载…';$('documentDownload').href=href(r.path);$('documentRaw').href=href(r.path);if(!$('documentDialog').open)$('documentDialog').showModal();if(updateUrl)history.replaceState(null,'',route(r.project,r.id));
-  try{const response=await fetch(href(r.path),{signal:controller.signal});if(!response.ok)throw Error('HTTP '+response.status);const text=await response.text();if(!controller.signal.aborted)$('documentBody').replaceChildren(markdown(text));}catch(e){if(e.name!=='AbortError')$('documentBody').textContent='加载失败，请稍后重试，或下载 PRD 查看。';}
- }
- document.addEventListener('click',event=>{const p=event.target.closest('a[data-project]');if(p){event.preventDefault();navigate(p.dataset.project);return;}const r=event.target.closest('[data-document]');if(r)openDocument(r.dataset.document);});
- $('searchInput').addEventListener('input',event=>{query=event.target.value;renderFeatures();});$('clearFilters').addEventListener('click',()=>{query='';$('searchInput').value='';renderFeatures();});$('closeDocument').addEventListener('click',()=>$('documentDialog').close());
- $('documentDialog').addEventListener('close',()=>{if(request)request.abort();if(new URLSearchParams(location.search).has('resource'))history.replaceState(null,'',route(projectId));});
- $('shareButton').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(location.href);toast('链接已复制');}catch{toast('请复制地址栏中的链接');}});
- window.addEventListener('popstate',()=>{const current=location.href;if($('documentDialog').open)$('documentDialog').close();history.replaceState(null,'',current);readRoute();});readRoute();
+
+ async function loadDocument(resource){const controller=new AbortController();request=controller;$('documentBody').textContent='正在加载 PRD…';try{const response=await fetch(href(resource.path),{signal:controller.signal});if(!response.ok)throw Error('HTTP '+response.status);const text=await response.text();if(!controller.signal.aborted)$('documentBody').replaceChildren(markdown(text));}catch(e){if(e.name!=='AbortError'){$('documentBody').textContent='PRD 加载失败。';const retry=document.createElement('button');retry.type='button';retry.textContent='重试';retry.addEventListener('click',()=>loadDocument(resource));$('documentBody').append(retry);}}}
+ $('viewTabs').addEventListener('click',event=>{const tab=event.target.closest('[data-view]');if(tab&&tab.dataset.view!==view)selectView(tab.dataset.view);});
+ $('viewTabs').addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();selectView(event.key==='Home'?'prototype':event.key==='End'?'prd':view==='prototype'?'prd':'prototype');$(view+'Tab').focus();}});
+ $('sourcesButton').addEventListener('click',()=>$('sourcesDialog').showModal());$('closeSources').addEventListener('click',()=>$('sourcesDialog').close());
+ $('sourcesDialog').addEventListener('click',event=>{const link=event.target.closest('a[data-project]');if(link){event.preventDefault();navigate(link.dataset.project,link.dataset.feature);}});
+ $('shareButton').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(route().href);toast('当前项目链接已复制');}catch{toast('请复制地址栏中的链接');}});
+ window.addEventListener('popstate',readRoute);readRoute();
 })();
