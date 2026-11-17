@@ -85,39 +85,6 @@ window.PM_CATALOG = {
       "description": "57条更新、35份RP、199个节点；158张完整画布与对应原文说明。",
       "path": "5E/租号历史原型/HTML/index.html",
       "file": "5E/租号历史原型/HTML/index.html"
-    },
-    {
-      "id": "5e-rental-guide",
-      "title": "使用路径阅读说明",
-      "type": "document",
-      "version": "2026.11.17",
-      "updated": "2026-11-17",
-      "dateLabel": "更新于",
-      "status": "阅读说明",
-      "description": "三角色路径、资料覆盖和缺口说明。",
-      "path": "5E/租号历史原型/Markdown/使用路径阅读说明.md"
-    },
-    {
-      "id": "5e-rental-review",
-      "title": "历史迭代侧重点与原型关系",
-      "type": "document",
-      "version": "2026.11.17",
-      "updated": "2026-11-17",
-      "dateLabel": "更新于",
-      "status": "资料分析",
-      "description": "更新方向、源表记录与RP子页面的关系。",
-      "path": "5E/租号历史原型/Markdown/历史迭代侧重点与原型关系.md"
-    },
-    {
-      "id": "5e-rental-changelog",
-      "title": "原型网页更新记录",
-      "type": "changelog",
-      "version": "2026.11.17",
-      "updated": "2026-11-17",
-      "dateLabel": "更新于",
-      "status": "资料记录",
-      "description": "本次公开网页的功能和收录范围。",
-      "path": "5E/租号历史原型/Markdown/网页更新记录.md"
     }
   ]
 };
