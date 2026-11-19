@@ -22,14 +22,49 @@ dialog:has(.annotation-panel){width:min(980px,calc(100% - 22px))}
 @media(max-width:760px){.annotated{display:flex;flex-direction:column;gap:6px}.annotation-panel,.annotation-content{width:100%}}
 .ops-nav details{margin:8px 0}.ops-nav summary{cursor:pointer;padding:6px}.ops-nav span{display:block;padding:4px 12px;color:var(--muted)}.ops-nav [aria-current=page]{color:var(--accent);background:var(--head);font-weight:600}.ops-filters label{display:grid;gap:3px}.ops-filters input{width:145px}.ops-filters{align-items:end}.change-tag{display:inline-block;margin:0 4px 0 0;padding:1px 5px;border-radius:4px;background:#eee5ff;color:#59339c;font-size:11px;font-weight:600}.change-zone{border-left:2px solid var(--accent);padding-left:9px}.merchant-nav span{display:block;padding:6px 10px}dialog.record-drawer{inset:0 0 0 auto;margin:0;width:min(800px,100%);height:100%;max-height:none;border-radius:0}
 .record-drawer td:last-child{white-space:pre-wrap;overflow-wrap:anywhere;min-width:120px}
+
+[hidden]{display:none!important}
+.landing{min-height:100vh;padding:clamp(24px,7vw,88px) max(20px,calc((100vw - 1120px)/2));background:#f4f5fa;color:#232638}
+.landing-head{padding:clamp(24px,5vw,52px);background:#201937;color:#fff;border-radius:20px}
+.landing-head h1{font-size:clamp(30px,5vw,50px);margin:10px 0}
+.landing-head p{max-width:640px;color:#e8dff7;font-size:16px;margin-bottom:22px}
+.landing-kicker{color:#d8befd}
+.landing-cta,.landing-back{display:inline-flex;align-items:center;text-decoration:none;font-weight:600}
+.landing-cta{color:#fff;background:#7543c7;padding:10px 18px;border-radius:8px}
+.landing-back{color:#fff;border:1px solid #6a6482;border-radius:8px;padding:5px 9px}
+.landing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:24px}
+.landing-card,.landing-flow{background:white;border:1px solid #e6e7f0;border-radius:12px;padding:18px}
+.landing-card p{margin:0;color:#555e75}.landing-flow{margin-top:14px}.landing-flow ol{padding-left:22px;margin-bottom:0}.landing-flow li+li{margin-top:6px}
+@media(max-width:760px){.landing-grid{grid-template-columns:1fr}}
 </style>
+<main class="landing" id="prototype-home">
+  <section class="landing-head" aria-labelledby="landing-title">
+    <span class="landing-kicker">5EPlay 饰品驿站 · PRD v1.0</span>
+    <h1 id="landing-title" tabindex="-1">租号部分退款</h1>
+    <p>租客遇到使用中断或计费差异时，客服需要结合已用时长和实付金额，判断应退多少。运营后台在现有退款入口增加部分退款，提供试算供客服核对。</p>
+    <a class="landing-cta" href="#prototype">进入原型 →</a>
+  </section>
+  <div class="landing-grid">
+    <section class="landing-card"><h2>运营后台</h2><p>从订单行发起部分退款，核对建议金额，填写退款金额、原因和备注。成功后可从「记录」回查。</p></section>
+    <section class="landing-card"><h2>商家端</h2><p>通过订单状态旁的「详情」，查看同笔订单的操作时间、类型和备注。</p></section>
+    <section class="landing-card"><h2>用户端</h2><p>查看「部分退款」状态和已退金额。其他租赁订单仍按原定时间使用。</p></section>
+  </div>
+  <section class="landing-flow"><h2>推荐体验路径</h2>
+    <ol><li>进入运营后台，在续租订单 <strong>12026111900000108</strong> 的「操作」中选择「部分退款」。</li>
+    <li>填写 10 元、原因、备注和调整依据，审核后确认提交。</li>
+    <li>从订单行「记录」打开「查看退款明细」，跳到商家端或用户端核对同一笔订单。</li></ol>
+  </section>
+</main>
+<div id="prototype-app" hidden>
 <header class="demo">
+  <a class="landing-back" href="#overview">返回需求导览</a>
   <strong class="brand">5EPlay · 租号退款原型</strong>
   <nav aria-label="切换端" id="tabs"></nav>
   <div class="demo-controls"><label>模拟设置 <select id="scenario"><option value="success">退款成功</option><option value="pending">渠道处理中</option><option value="failure">渠道明确失败</option><option value="unknown">渠道结果未知</option><option value="settled">提交前已结算</option><option value="newer">提交前出现新续租</option><option value="balance">提交前余额变化</option><option value="denied">无操作权限</option></select></label><button id="reset">重置样例</button></div>
 </header>
 <div class="shell"><aside id="sidebar"></aside><main id="workspace"></main></div>
 <dialog id="modal" aria-labelledby="modal-title"></dialog>
+</div>
 <script>
 'use strict';
 const surfaces = {
@@ -505,6 +540,22 @@ document.addEventListener('click',event=>{
     const o=find(id);if(busy(o))refreshResult(o,value);render();detail(o);
   }
 });
+function showPrototypePage(focus=false){
+  const inPrototype=location.hash==='#prototype';
+  $('prototype-home').hidden=inPrototype;
+  $('prototype-app').hidden=!inPrototype;
+  if(!inPrototype&&modal.open)modal.close();
+  if(focus){
+    window.scrollTo(0,0);
+    const heading=inPrototype?$('workspace').querySelector('h1'):$('landing-title');
+    if(heading){
+      heading.tabIndex=-1;
+      heading.focus({preventScroll:true});
+    }
+  }
+}
 render();
+showPrototypePage();
+window.addEventListener('hashchange',()=>showPrototypePage(true));
 </script>
 </html>
