@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>5EPlay · 租号部分退款</title>
+<style>
+*{box-sizing:border-box}body{margin:0;color:#232638;background:#f4f5fa;font:14px/1.55 "PingFang SC","Microsoft Yahei",system-ui,sans-serif;--accent:#9254de;--card:#fff;--border:#e6e7f0;--muted:#656b82;--head:#f2f5f7}body[data-design-surface=merchant]{--accent:#1677ff}body[data-design-surface=player]{color:#f4f3fd;background:#151520;--card:#202030;--border:#36364b;--muted:#b1adc8;--accent:#744ef6;--head:#26263a}
+button,input,select,textarea{font:inherit}button,select{cursor:pointer}button,input,select,textarea{border:1px solid var(--border);border-radius:8px;color:inherit;background:var(--card);padding:6px 11px;min-height:32px}button:hover{border-color:var(--accent)}button:disabled{opacity:.45;cursor:default}.primary,[aria-current=true]{background:var(--accent);color:white;border-color:transparent}.link{color:var(--accent);padding:3px 7px;border-color:transparent}.demo{background:#19182a;color:#fff;padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.demo button,.demo select{background:#29283e;color:white;border-color:#484660}.demo [aria-current=true]{background:#744ef6}.brand{font-weight:800;margin-right:auto}.shell{display:grid;grid-template-columns:190px minmax(0,1fr);min-height:calc(100vh - 60px)}aside{background:var(--card);padding:24px 15px;border-right:1px solid var(--border)}aside strong{display:block;margin:0 10px 20px}aside div{padding:9px 11px;border-radius:8px;background:var(--head);color:var(--accent)}main{padding:30px;min-width:0}h1,h2,h3,p{margin:0 0 12px}h1{font-size:27px}h2{font-size:20px}h3{font-size:15px}.muted,small{color:var(--muted)}.panel,.order-card{background:var(--card);border:1px solid var(--border);border-radius:12px}.toolbar{padding:15px;display:flex;gap:10px;flex-wrap:wrap}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border)}th{background:var(--head);font-size:12px;color:var(--muted)}td small{display:block}.foot{padding:12px 16px}.pill{display:inline-block;padding:2px 8px;border-radius:6px;background:var(--head)}.pill.success{color:#15804c;background:#ddf6e9}.pill.active{color:#6942c1;background:#ebe3fc}.pill.warn{color:#895800;background:#fff1d2}.cards{display:grid;gap:12px}.order-card{padding:18px}.row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}.grid div{padding:7px 0;overflow-wrap:anywhere}.grid small{display:block}.box{padding:13px;background:var(--head);border-radius:8px;margin:10px 0}.error{color:#bd303f}.notice{margin:12px 0}.actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;padding-top:12px}.form{display:grid;gap:10px}.form label{display:grid;gap:4px}.form textarea{min-height:56px;resize:vertical}fieldset{border:1px solid var(--border);border-radius:8px;margin:8px 0;padding:8px 12px}fieldset label{display:inline-flex;align-items:center;gap:5px;margin-right:15px}dialog{background:var(--card);color:inherit;border:1px solid var(--border);border-radius:14px;width:min(740px,calc(100% - 22px));max-height:88vh;padding:20px;overflow:auto}dialog::backdrop{background:#16152690}.close{font-size:18px}.empty{text-align:center;padding:30px}.demo-controls{display:flex;gap:8px;flex-wrap:wrap}.demo-controls label{display:flex;align-items:center;gap:5px}
+@media(max-width:760px){.shell{grid-template-columns:1fr}aside{display:none}main{padding:18px 12px}.demo{padding:10px 12px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.demo .brand{width:100%}}
+
+.guide{margin:12px 0;padding:9px 12px;border:1px solid var(--border);border-left:3px solid var(--accent);background:var(--head);border-radius:8px}
+.guide summary{cursor:pointer;font-weight:600}.guide p{margin:6px 0 0}.guide small{display:block;margin-top:4px}
+[data-design-surface=operations] .table-wrap .link{color:#1677ff}
+dialog.compact{width:min(500px,calc(100% - 22px))}
+
+.annotated{display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,245px);gap:14px;align-items:start}
+.annotation-panel{grid-column:2;grid-row:1;min-width:0}
+.annotation-content{grid-column:1;grid-row:1;min-width:0}
+.annotation-link{display:block;text-align:left;margin-top:8px}
+[data-annotation-active]{outline:2px solid var(--accent);outline-offset:-2px;border-radius:5px}
+dialog:has(.annotation-panel){width:min(980px,calc(100% - 22px))}
+@media(max-width:760px){.annotated{display:flex;flex-direction:column;gap:6px}.annotation-panel,.annotation-content{width:100%}}
+.ops-nav details{margin:8px 0}.ops-nav summary{cursor:pointer;padding:6px}.ops-nav span{display:block;padding:4px 12px;color:var(--muted)}.ops-nav [aria-current=page]{color:var(--accent);background:var(--head);font-weight:600}.ops-filters label{display:grid;gap:3px}.ops-filters input{width:145px}.ops-filters{align-items:end}.change-tag{display:inline-block;margin:0 4px 0 0;padding:1px 5px;border-radius:4px;background:#eee5ff;color:#59339c;font-size:11px;font-weight:600}.change-zone{border-left:2px solid var(--accent);padding-left:9px}.merchant-nav span{display:block;padding:6px 10px}dialog.record-drawer{inset:0 0 0 auto;margin:0;width:min(800px,100%);height:100%;max-height:none;border-radius:0}
+.record-drawer td:last-child{white-space:pre-wrap;overflow-wrap:anywhere;min-width:120px}
+</style>
+<header class="demo">
+  <strong class="brand">5EPlay · 租号退款原型</strong>
+  <nav aria-label="切换端" id="tabs"></nav>
+  <div class="demo-controls"><label>模拟设置 <select id="scenario"><option value="success">退款成功</option><option value="pending">渠道处理中</option><option value="failure">渠道明确失败</option><option value="unknown">渠道结果未知</option><option value="settled">提交前已结算</option><option value="newer">提交前出现新续租</option><option value="balance">提交前余额变化</option><option value="denied">无操作权限</option></select></label><button id="reset">重置样例</button></div>
+</header>
+<div class="shell"><aside id="sidebar"></aside><main id="workspace"></main></div>
+<dialog id="modal" aria-labelledby="modal-title"></dialog>
+<script>
+'use strict';
+const surfaces = {
+  operations:{tab:'运营后台',brand:'5EPlay 运营后台',page:'租赁订单管理'},
+  player:{tab:'用户端',brand:'5EPlay 饰品驿站',page:'我的租号订单'},
+  merchant:{tab:'商家端',brand:'饰品驿站 · 商家端',page:'订单详情'}
+};
+const seed = [
+  {id:108,account:'账号 A01',name:'竞技租号 A01',type:'小时租',renew:true,P:1800,O:1800,T:3,U:0,state:'等待开始',fund:'冻结中',start:'2026-11-19 14:00:00',end:'2026-11-19 17:00:00'},
+  {id:107,account:'账号 A01',name:'竞技租号 A01',type:'小时租',P:1800,O:2400,T:3,U:3600,state:'租赁中',fund:'冻结中',start:'2026-11-19 11:00:00',end:'2026-11-19 14:00:00'},
+  {id:106,account:'账号 A02',name:'竞技租号 A02',type:'天租',P:3000,O:3000,T:24,U:5400,H:400,state:'租赁中',fund:'冻结中',start:'2026-11-19 10:30:00',end:'2026-11-20 10:30:00'},
+  {id:105,account:'账号 A03',name:'竞技租号 A03',type:'包时租',P:1200,O:1200,T:4,U:14400,state:'已结束',fund:'已解冻',start:'2026-11-19 07:00:00',end:'2026-11-19 11:00:00',actual:'2026-11-19 11:00:00'},
+  {id:104,account:'账号 A04',name:'竞技租号 A04',type:'天租',P:3000,O:3000,T:24,U:86400,H:400,state:'已结束',fund:'已解冻',settled:true,start:'2026-11-18 11:00:00',end:'2026-11-19 11:00:00',actual:'2026-11-19 11:00:00'},
+  {id:103,account:'账号 A05',name:'竞技租号 A05',type:'小时租',P:0,O:800,T:2,U:0,state:'等待开始',fund:'冻结中',start:'2026-11-19 13:00:00',end:'2026-11-19 15:00:00'},
+  {id:102,account:'账号 A06',name:'竞技租号 A06',type:'小时租',P:800,O:800,T:2,U:7200,state:'已结束',fund:'已解冻',old:true,start:'2026-11-18 08:00:00',end:'2026-11-18 10:00:00',actual:'2026-11-18 10:00:00'},
+  {id:101,account:'账号 A07',name:'竞技租号 A07',type:'天租',P:3000,O:3000,T:24,U:7200,state:'租赁中',fund:'冻结中',start:'2026-11-19 10:00:00',end:'2026-11-20 10:00:00'},
+  {
+    id:100,account:'账号 A08',name:'竞技租号 A08',type:'小时租',P:1800,O:1800,T:3,U:3600,
+    state:'已结束',fund:'冻结中',start:'2026-11-19 10:00:00',end:'2026-11-19 13:00:00',actual:'2026-11-19 11:00:00',
+    record:{
+      id:'RF-DEMO-100',mode:'partial',amount:1200,reason:'使用中断',note:'使用中断，按已用时长扣除 6 元，退回 12 元。',
+      status:'成功',channel:'渠道确认退款成功（模拟）',started:'2026-11-19 11:00:00',completed:'2026-11-19 11:00:00',
+      calculation:'实付 18 元 − 已使用 6 元 = 12 元'
+    },
+    operationLog:[{
+      time:'2026-11-19 11:00:00',operator:'客服演示员',type:'部分退款',note:'使用中断，按已用时长扣除 6 元，退回 12 元。'
+    }]
+  }
+];
+const reasons=['使用中断','时长或计费差异','售后协商','其他'];
+const $=id=>document.getElementById(id);
+const escapeHTML=value=>String(value??'—').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const money=cents=>'¥'+(cents/100).toFixed(2);
+const orderNo=o=>'1'+(o.paid||o.start).slice(0,10).replaceAll('-','')+String(o.id).padStart(8,'0');
+const payNo=o=>'99000000'+(o.paid||o.start).replace(/[^0-9]/g,'')+String(o.id).padStart(4,'0');
+const dur=seconds=>Math.floor(seconds/3600)+' 小时 '+Math.floor(seconds%3600/60)+' 分钟';
+const refunded=o=>o.record?.status==='成功';
+const busy=o=>['处理中','待核查'].includes(o.record?.status);
+const remaining=o=>Math.max(0,o.P-(refunded(o)||busy(o)?o.record.amount:0)-(o.hold||0));
+const outcome=o=>o.source?(o.fund==='已退款'?'全额退款':'—'):refunded(o)?(o.record.mode==='partial'?'部分退款':'全额退款'):'未退款';
+const visibleState=o=>o.listedStatus??(refunded(o)?(o.record.mode==='partial'?'部分退款':'已退款'):(surface==='merchant'&&o.state==='等待开始'?'租赁中':o.state));
+const status=(label,kind='')=>'<span class="pill '+kind+'">'+escapeHTML(label)+'</span>';
+const orderFields=o=>[['租赁订单号',orderNo(o)],['支付订单号',payNo(o)],['租期',o.type+' · '+(o.renew?'续租':'首租')],['原价',money(o.O)],['优惠金额',money(o.O-o.P)],['实付金额',money(o.P)],['订单开始时间',o.start],['预计到期时间',o.adjustedEnd??o.end],['实际结束时间',o.actual]];
+const fields=items=>'<div class="grid">'+items.map(([k,v])=>'<div><small>'+k+'</small>'+escapeHTML(v)+'</div>').join('')+'</div>';
+const operatorMenus={
+  '账号租赁':['租赁账号管理','商家账号管理','商家账号审核','商户提现管理','通用配置管理','租赁订单管理','筛选配置','公告/帮助','资源位配置','账号上传','上号日志','租赁封禁管理','支付冻结管理'],
+  '账号监控':['账号可用性监控','恶意用户监控','关键行为操作后被租','租赁价格限制'],
+  '优惠券':['批量发放','客服单张发放','用户优惠券查询','创建优惠券','生成CDK','CDK查询']
+};
+const opsIdentity=o=>o.source?{uid:'—',channel:'—',steam:'—',merchant:'—',rental:'—',paid:o.paid}:({uid:o.account==='账号 A01'?'900001':'90'+o.id,channel:'5E',steam:'76561190000'+String(o.account.replace(/[^0-9]/g,'')).padStart(6,'0'),merchant:'800001',rental:'CS'+String(o.account.replace(/[^0-9]/g,'')).padStart(10,'0'),paid:o.old?o.start:'2026-11-19 09:'+String(o.id%60).padStart(2,'0')+':00'});
+const manualPartialStatus='已结束-部分退款（人工）';
+const opsStatus=o=>o.listedStatus??(refunded(o)?(o.record.mode==='partial'?manualPartialStatus:'已结束-已退款(人工)'):o.state==='等待开始'?'租赁中':o.state);
+function opsFilter(){
+  const controls=[['query','订单号'],['uid','5E UID'],['state','订单状态'],['channel','渠道'],['steam','SteamID'],['merchant','商户UID'],['rental','租号ID'],['from','支付时间（起）'],['to','支付时间（止）'],['fund','资金状态']];
+  const toolbar='<div class="toolbar row"><strong>租赁中订单数量：'+orders.filter(o=>opsStatus(o)==='租赁中').length+'</strong><span><button data-action="export">导 出</button> <button class="primary" data-action="batch-entry">批量加减时长</button></span></div>';
+  return toolbar+'<form class="toolbar ops-filters" id="filters">'+controls.map(([name,label])=>{
+    const value=escapeHTML(criteria[name]||'');
+    const choices={state:['租赁中','已结束','已退款系统','已退款人工',manualPartialStatus],fund:['冻结中','已解冻','已退款']}[name];
+    const field=choices?'<select name="'+name+'"><option value="">请选择'+label+'</option>'+choices.map(v=>'<option '+(value===v?'selected':'')+'>'+v+'</option>').join('')+'</select>':'<input name="'+name+'" type="'+(['from','to'].includes(name)?'datetime-local':'text')+'" value="'+value+'">';
+    return '<label>'+label+field+'</label>';
+  }).join('')+'<button type="button" data-action="clear">重置</button><button class="primary">查询</button></form>';
+}
+function opsMatches(o){
+  const f=opsIdentity(o), state=opsStatus(o);
+  return ['uid','channel','steam','merchant','rental'].every(k=>!criteria[k]||f[k].toLowerCase().includes(criteria[k].toLowerCase()))&&
+    (!criteria.state||(criteria.state==='已退款人工'?state==='已结束-已退款(人工)':state===criteria.state))&&
+    (!criteria.from||f.paid.slice(0,16)>=criteria.from.replace('T',' '))&&(!criteria.to||f.paid.slice(0,16)<=criteria.to.replace('T',' '));
+}
+const changeTag=(label='本次新增')=>'<span class="change-tag">'+label+'</span>';
+const merchantMenus=['首页','上传账号','账号管理','营销配置','订单详情','我的钱包'];
+function merchantFilters(){
+  const inputs=[['query','订单号'],['rental','账号ID'],['state','订单状态'],['fund','资金状态'],['from','支付时间（起）'],['to','支付时间（止）']];
+  return '<div class="toolbar">筛选后可展示总金额</div><form class="toolbar ops-filters" id="filters">'+inputs.map(([name,label])=>{
+    const value=escapeHTML(criteria[name]||'');
+    const choices={state:['租赁中','已结束','已退款','已结束-已退款(系统)','部分退款'],fund:['冻结中','已解冻','已退款']}[name];
+    const control=choices?'<select name="'+name+'"><option value="">请选择'+label+'</option>'+choices.map(v=>'<option '+(value===v?'selected':'')+'>'+v+'</option>').join('')+'</select>':'<input name="'+name+'" type="'+(['from','to'].includes(name)?'datetime-local':'text')+'" value="'+value+'">';
+    return '<label>'+label+control+'</label>';
+  }).join('')+'<button class="primary">查 询</button></form>';
+}
+function merchantMatches(o){
+  const identity=opsIdentity(o);
+  const paid=identity.paid.slice(0,16);
+  return (!criteria.rental||identity.rental.toLowerCase().includes(criteria.rental.toLowerCase()))&&
+    (!criteria.from||paid>=criteria.from.replace('T',' '))&&(!criteria.to||paid<=criteria.to.replace('T',' '));
+}
+const guides={
+  operations:['订单管理','从订单行「操作」发起部分退款。成功后可按「已结束-部分退款（人工）」筛选，在「记录」里核对备注。','PRD §3.1–3.2'],
+  selection:['选择退款方式','退款方式默认不选中。选「部分退款」后展开试算和金额填写区。','PRD §3.2'],
+  partial:['试算与人工填写','核对实付、已用时间、试算和可退金额，填写退款金额、原因及备注。金额等于实付且在可退范围内时，提示改选全额退款。','PRD §3.2–3.4'],
+  full:['全额退款','全额退款沿用原流程，备注必填。','PRD §3.1–3.2'],
+  time:['加减时间','确认前核对调整后的预计到期时间。分钟限制为演示规则。','现有订单操作入口'],
+  review:['确认提交','核对订单、退款金额、原支付渠道和退款后结算金额。提交时复查订单顺序、结算状态和可退余额。','PRD §3.5–3.7'],
+  record:['查看退款记录','成功后可查看对应的用户端或商家端详情。处理中和待核查时查询原退款记录，继续占用金额。','PRD §3.5、§3.8'],
+  merchant:['商家订单详情','「详情」读取运营后台同一笔订单的操作记录，显示操作时间、类型和备注。','PRD §3.8'],
+  player:['我的租号订单','打开详情核对退款状态和已退金额。其余订单继续按各自原定时间使用。','PRD §3.8']
+};
+const guideTargets={
+  operations:['[data-action=operate]','定位订单行操作'],
+  selection:['input[name=mode]','定位新增退款方式'],
+  partial:['#amount','定位本次退款金额'],
+  full:['#note','定位原有必填备注'],
+  time:['#minutes','定位时长输入'],
+  review:['[data-action=submit]','定位确认提交'],
+  record:['.annotation-content h3','定位退款记录'],
+  merchant:['[data-action=detail]','定位订单详情'],
+  player:['[data-action=detail]','定位查看详情']
+};
+let guideEnabled=false;
+function annotated(key,body){
+  if(!guideEnabled)return body;
+  return '<div class="annotated"><section class="annotation-panel" aria-label="PRD 交互说明">'+guide(key,innerWidth>760)+'</section><div class="annotation-content">'+body+'</div></div>';
+}
+function guide(key,open=false){
+  const [title,description,source]=guides[key];
+  const [selector,label]=guideTargets[key];
+  return '<details class="guide" '+(open?'open':'')+'><summary>PRD 交互说明 · '+title+'</summary><p>'+description+'</p><small>'+source+'</small><button class="link annotation-link" data-action="locate-guide" data-selector="'+selector+'">'+label+'</button></details>';
+}
+let orders=structuredClone(seed),surface='operations',criteria={query:'',state:'',fund:''},draft,reviewAction;
+const find=id=>orders.find(o=>o.id===Number(id));
+const modal=$('modal');
+function openDialog(title,body,guideKey){
+  modal.classList.toggle('record-drawer',title==='订单操作记录');
+  modal.classList.toggle('compact',title==='订单操作'&&draft?.mode!=='partial');
+  if(guideKey){
+    body=annotated(guideKey,body);
+    if(title==='订单详情'&&surface!=='operations'){
+      body=body.replace(guideTargets[surface][0],'.annotation-content .grid')
+        .replace(guideTargets[surface][1],'定位订单详情字段');
+    }
+  }
+  modal.innerHTML='<div class="row"><h2 id="modal-title">'+title+'</h2><button class="close" data-action="close" aria-label="关闭">×</button></div>'+body;
+  if(!modal.open)modal.showModal();
+  modal.scrollTop=0;
+}
+// 样本仅转录截图中可见的业务字段，省略订单号及人员、账号标识。
+const observedOrders={
+  operations:[
+    ['2026-11-19 14:31:33','2小时','首租',1,0,1,0.3,0.7,'已结束-已退款(人工)','2026-11-19 16:31:33'],
+    ['2026-11-19 14:28:52','2小时','首租',3,0,3,0.9,2.1,'已结束-已退款(人工)','2026-11-19 16:28:52'],
+    ['2026-11-19 14:18:37','2小时','首租',3.6,0,3.6,1.08,2.52,'已结束-已退款(人工)','2026-11-19 16:18:37'],
+    ['2026-11-19 14:14:24','2小时','首租',4,0,4,1.20,2.80,'已结束-已退款(人工)','2026-11-19 16:14:24'],
+    ['2026-11-19 14:13:58','7天','首租',42,3,39,11.70,27.30,'已结束-已退款(人工)','2026-11-26 14:13:58'],
+    ['2026-11-19 14:12:48','2小时','首租',3,0,3,0.90,2.10,'已结束-已退款(人工)','2026-11-19 16:12:48'],
+    ['2026-11-19 14:05:20','2小时','首租',20,0,20,6,14,'已结束-已退款(人工)','2026-11-19 16:05:20'],
+    ['2026-11-19 13:58:47','2小时','首租',8,0,8,2.40,5.60,'已结束-已退款(人工)','2026-11-19 15:58:47']
+  ],
+  merchant:[
+    ['2026-11-08 17:15:45','4小时','首租',6,0,6,1.8,'已结束'],
+    ['2026-11-06 08:12:00','2小时','首租',2,0,2,0.6,'已结束'],
+    ['2026-11-03 22:35:55','2小时','首租',2,0,2,0.6,'已结束'],
+    ['2026-11-01 15:51:34','8小时','首租',8,0,8,2.4,'已结束'],
+    ['2026-11-01 00:13:21','包夜(0:00-7:00)','首租',5,0,5,1.5,'已结束'],
+    ['2026-11-01 00:07:09','包夜(0:00-7:00)','首租',5,0,5,1.5,'已结束-已退款(系统)'],
+    ['2026-10-31 15:19:16','8小时','首租',8,0,8,2.4,'已结束'],
+    ['2026-10-31 04:38:28','1小时','续租4次',1,0,1,0.3,'已结束'],
+    ['2026-10-31 03:09:50','1小时','续租3次',1,0,1,0.3,'已结束'],
+    ['2026-10-31 02:29:43','1小时','续租2次',1,0,1,0.3,'已结束'],
+    ['2026-10-31 01:37:04','1小时','续租1次',1,0,1,0.3,'已结束']
+  ]
+};
+for(const [source,rows] of Object.entries(observedOrders)){
+  rows.forEach((row,index)=>{
+    const [paid,duration,rentalType,original,coupon,price,income,...rest]=row;
+    const ops=source==='operations';
+    seed.push({
+      id:(ops?200:300)+index,source,paid,duration,rentalType,O:original*100,P:price*100,
+      listedIncome:income*100,platformIncome:ops?rest[0]*100:undefined,
+      listedStatus:rest[ops?1:0],end:ops?rest[2]:undefined,
+      fund:ops?'已退款':undefined
+    });
+  });
+}
+orders=structuredClone(seed);
+let orderPage=1,pageSize=25,filteredOrders=[],batchDraft;
+function pagination(total){
+  const pages=Math.max(1,Math.ceil(total/pageSize));
+  return '<div class="foot row"><span>共 '+total+' 条</span><span><button data-action="order-page" data-value="'+(orderPage-1)+'" '+(orderPage===1?'disabled':'')+'>上一页</button> '+orderPage+' / '+pages+' <button data-action="order-page" data-value="'+(orderPage+1)+'" '+(orderPage===pages?'disabled':'')+'>下一页</button></span><label>每页显示：<select id="order-page-size">'+[5,10,25,50].map(n=>'<option '+(n===pageSize?'selected':'')+'>'+n+'</option>').join('')+'</select></label></div>';
+}
+function render(message=''){
+  document.body.dataset.designSurface=surface;
+  const page=surfaces[surface];
+  $('tabs').innerHTML=Object.entries(surfaces).map(([key,value])=>'<button data-action="surface" data-value="'+key+'" aria-current="'+(key===surface)+'">'+value.tab+'</button>').join(' ');
+  $('sidebar').innerHTML='<strong>'+page.brand+'</strong>'+(surface==='operations'?'<nav class="ops-nav" aria-label="线上菜单结构">'+Object.entries(operatorMenus).map(([group,items])=>'<details '+(group==='账号租赁'?'open':'')+'><summary>'+group+'</summary>'+items.map(item=>'<span '+(item===page.page?'aria-current="page"':'')+'>'+item+'</span>').join('')+'</details>').join('')+'</nav>':surface==='merchant'?'<nav class="merchant-nav">'+merchantMenus.map(item=>'<span '+(item===page.page?'aria-current="page"':'')+'>'+item+'</span>').join('')+'</nav>':'<div aria-current="page">'+page.page+'</div>');
+  const visible=orders.filter(o=>(!o.source||o.source===surface)&&(surface!=='merchant'||merchantMatches(o))&&(!criteria.fund||(surface!=='player'&&refunded(o)&&o.record.mode==='full'?'已退款':o.fund??'—')===criteria.fund)&&(surface==='operations'?opsMatches(o):!criteria.state||visibleState(o)===criteria.state)&&[orderNo(o),o.account,o.name].filter(Boolean).some(v=>v.toLowerCase().includes(criteria.query.toLowerCase())));
+  filteredOrders=visible;
+  const ops=surface==='operations';
+  orderPage=Math.min(orderPage,Math.max(1,Math.ceil(visible.length/pageSize)));
+  const currentRows=surface!=='player'?visible.slice((orderPage-1)*pageSize,orderPage*pageSize):visible;
+  const options=[...new Set(orders.map(o=>surface==='operations'?o.state:visibleState(o)))];
+  const filters=surface==='operations'?opsFilter():surface==='merchant'?merchantFilters():'<form class="toolbar" id="filters"><input name="query" aria-label="订单号或账号" placeholder="订单号或账号" value="'+escapeHTML(criteria.query)+'"><select name="state" aria-label="订单状态"><option value="">全部状态</option>'+options.map(s=>'<option '+(s===criteria.state?'selected':'')+'>'+s+'</option>').join('')+'</select>'+(surface==='player'?'':'<select name="fund" aria-label="资金状态"><option value="">全部资金状态</option>'+['冻结中','已解冻'].map(f=>'<option '+(f===criteria.fund?'selected':'')+'>'+f+'</option>').join('')+'</select>')+'<button class="primary">查询</button><button type="button" data-action="clear">清空</button>' +(surface==='operations'?'<button type="button" data-action="export">导出查询结果</button>':'')+'</form>';
+  $('workspace').innerHTML='<div class="row"><h1>'+page.page+'</h1>'+'<button data-action="toggle-guide">'+(guideEnabled?'隐藏交互说明':'显示交互说明')+'</button></div>'+annotated(surface,'<p class="muted">离线原型 · 订单号及标识为脱敏演示值 · 运营和商家列表含截图样本</p><p id="feedback" class="notice" role="status">'+escapeHTML(message)+'</p><div class="panel">'+filters+(visible.length?(surface==='player'?'<div class="cards">'+visible.map(playerCard).join('')+'</div>':table(currentRows)):'<div class="empty">没有符合条件的订单</div>')+(surface!=='player'?pagination(visible.length):'<div class="foot muted">共 '+visible.length+' 笔订单</div>')+'</div>');
+}
+function playerCard(o){
+  return '<article class="order-card"><div class="row"><h3>'+o.name+'</h3>'+(outcome(o)==='部分退款'?changeTag():'')+status(visibleState(o),refunded(o)?'success':'active')+'</div><p class="muted">'+orderNo(o)+' · '+o.type+' · '+(o.renew?'续租':'首租')+'</p><div class="row"><span>实付 '+money(o.P)+(refunded(o)?'　已退款 '+money(o.record.amount):'')+'</span><button class="link" data-action="detail" data-id="'+o.id+'">查看详情</button></div><small>预计到期时间 '+(o.adjustedEnd??o.end)+'</small></article>';
+}
+function table(visible){
+  const ops=surface==='operations';
+  const headings=ops?['订单号','支付时间','渠道','租号 ID','Steam ID','商户UID','5E UID','租赁时长','支付渠道','支付订单号','类型','原价','优惠券','实付金额','渠道收入','平台收入','订单状态','预计到期时间','实际结束时间','资金状态','操作']:['订单号','支付时间','租号 ID','租赁时长','类型','原价','优惠券','实付金额','实际收入','订单状态','预计到期时间','实际结束时间','资金状态'];
+  const rows=visible.map(o=>{
+    const buttons=o.source?'—':'<button class="link" data-action="detail" data-id="'+o.id+'">'+(ops?'记录':'详情')+'</button>'+(ops?'<button class="link" data-action="operate" data-id="'+o.id+'" '+(refunded(o)||busy(o)?'disabled':'')+'>操作</button><button class="link" data-action="matches" data-id="'+o.id+'">比赛记录</button>':'');
+    const identity=opsIdentity(o);
+    const cells=ops?[orderNo(o),identity.paid,identity.channel,identity.rental,identity.steam,identity.merchant,identity.uid,o.duration??o.T+'小时',o.source?'—':'支付宝-易宝',o.source?'—':payNo(o),o.rentalType??(o.renew?'续租1次':'首租'),money(o.O),o.P<o.O?money(o.O-o.P):'—',money(o.P),money(o.listedIncome??Math.round(o.P*.3)),money(o.platformIncome??o.P-Math.round(o.P*.3)),(opsStatus(o)===manualPartialStatus?changeTag():'')+status(opsStatus(o)),o.adjustedEnd??o.end??'—',o.actual??'—',refunded(o)&&o.record.mode==='full'?'已退款':o.fund??'—',buttons]:[orderNo(o),identity.paid,identity.rental,o.duration??o.T+'小时',o.rentalType??(o.renew?'续租1次':'首租'),money(o.O),o.P<o.O?money(o.O-o.P):'—',money(o.P),money(o.listedIncome??merchantIncome(o)),(outcome(o)==='部分退款'?changeTag():'')+status(visibleState(o),refunded(o)?'success':'active')+' '+(o.operationLog?.length?buttons:''),o.adjustedEnd??o.end??'—',o.actual??'—',refunded(o)&&o.record.mode==='full'?'已退款':o.fund??'—'];
+    return '<tr>'+cells.map(c=>'<td>'+c+'</td>').join('')+'</tr>';
+  });
+  return '<div class="table-wrap"><table><thead><tr>'+headings.map(h=>'<th>'+h+(h==='实际结束时间'?'<br>'+changeTag():h==='预计到期时间'?'<br>'+changeTag('原到期时间 · 改名'):'')+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
+}
+const merchantIncome=o=>Math.round((o.P-(refunded(o)?o.record.amount:0))*0.8);
+function logOrderOperation(o,type,note){
+  (o.operationLog ||= []).unshift({time:'2026-11-19 12:00:00',operator:'客服演示员',type,note});
+}
+function operationRecords(o){
+  const ops=surface==='operations';
+  const rows=(o.operationLog||[]).map(entry=>'<tr><td>'+escapeHTML(entry.time)+'</td>'+
+    (ops?'<td>'+escapeHTML(entry.operator)+'</td>':'')+'<td>'+
+    (entry.type==='部分退款'?changeTag():'')+escapeHTML(entry.type)+'</td><td>'+escapeHTML(entry.note)+'</td></tr>').join('');
+  openDialog('订单操作记录','<div class="actions"><button data-action="close">取 消</button><button class="primary" data-action="close">确 定</button></div>'+
+    '<div class="table-wrap"><table><thead><tr><th>操作时间</th>'+(ops?'<th>操作人</th>':'')+'<th>操作类型</th><th>备注</th></tr></thead><tbody>'+
+    (rows||'<tr><td colspan="'+(ops?4:3)+'" class="empty">暂无操作记录</td></tr>')+'</tbody></table></div>'+
+    (ops&&o.record?'<div class="actions"><button data-action="refund-detail" data-id="'+o.id+'">查看退款明细</button></div>':''));
+}
+function detail(o){
+  const r=o.record;
+  const base=surface==='player'?orderFields(o).filter(([k])=>!['支付订单号','原价','优惠金额'].includes(k)):orderFields(o);
+  base.push(['订单状态',surface==='operations'?o.state:visibleState(o)]);
+  if(surface==='player')base.push(['使用资格',o.state==='租赁中'?'当前可使用':o.state==='等待开始'?'按原定时间开始':'已结束']);
+  if(refunded(o))base.push(['已退款金额',money(r.amount)]);
+  if(surface==='merchant')base.push(['资金状态',refunded(o)&&o.record.mode==='full'?'已退款':o.fund??'—'],['实际收入',money(o.listedIncome??merchantIncome(o))]);
+  let history='';
+  if(r&&surface==='operations'){
+    history='<h3>退款记录</h3>'+fields([['退款记录号',r.id],['方式',r.mode==='partial'?'部分退款':'全额退款'],['本次退款进度',r.status],['渠道结果',r.channel],['实际到账','当前无到账凭证'],['发起时间',r.started],['完成时间',r.completed],['金额',money(r.amount)],['原因',r.reason],['处理备注',r.note],['调整或核实依据',r.basis||'—'],['试算依据',r.calculation],['操作人','客服演示员']]);
+    if(busy(o))history+='<button data-action="query" data-id="'+o.id+'">查询模拟渠道结果</button>';
+  }
+  if(surface==='operations'&&o.timeLog?.length){
+    history+='<h3>加减时记录</h3>'+fields(o.timeLog.map(log=>[log.label,log.note]));
+  }
+  if(surface==='operations'&&refunded(o)){
+    history+='<div class="actions"><button data-action="handoff" data-id="'+o.id+'" data-value="player">查看用户端本单</button><button data-action="handoff" data-id="'+o.id+'" data-value="merchant">查看商家端本单</button></div>';
+  }
+  openDialog('订单详情',fields(base)+history,surface==='operations'?'record':surface);
+}
+function reviewTime(){
+  const o=find(draft.id), minutes=Number(draft.minutes);
+  if($('scenario').value==='denied')return form('当前操作人无操作权限');
+  if(o.state!=='租赁中')return form('演示中仅对进行中的订单开放加减时');
+  if(!Number.isInteger(minutes)||minutes<1||minutes>1440)return form('请输入 1 至 1440 的整数分钟');
+  if(!draft.note.trim())return form('请填写处理备注');
+  const delta=draft.operation==='add'?minutes:-minutes;
+  if(o.T*3600+(o.adjustment||0)*60+delta*60<=o.U)return form('调整后的时长须大于已使用时长');
+  draft.timeChange=timeChange(o,delta);
+  openDialog('确认调整时间',fields([['订单号',orderNo(o)],['本次调整',draft.timeChange.label],['调整后的预计到期时间',draft.timeChange.end],['备注',draft.note]])+
+    '<div class="actions"><button data-action="back">返回修改</button><button class="primary" data-action="apply-time">确认调整</button></div>');
+}
+function timeChange(o,delta){
+  const date=new Date(o.end.replace(' ','T'));
+  date.setMinutes(date.getMinutes()+(o.adjustment||0)+delta);
+  const end=new Intl.DateTimeFormat('sv-SE',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(date);
+  return {delta,end,label:(delta>0?'加':'减')+'时间 '+Math.abs(delta)+' 分钟'};
+}
+function saveTime(o,{delta,end,label},note){
+  o.adjustment=(o.adjustment||0)+delta;
+  o.adjustedEnd=end;
+  (o.timeLog ||= []).push({label,note});
+  logOrderOperation(o,(delta>0?'加时长':'减时长')+dur(Math.abs(delta)*60).replaceAll(' ',''),note);
+}
+function applyTime(){
+  const o=find(draft.id);
+  saveTime(o,draft.timeChange,draft.note);
+  modal.close();
+  render('已调整 '+orderNo(o)+' 的使用时长');
+}
+function showBatch(error=''){
+  openDialog('订单操作','<fieldset><legend>操作类型 *</legend>'+
+    [['add','加时间'],['subtract','减时间']].map(([value,label])=>'<label><input type="radio" name="batch-mode" value="'+value+'" '+(batchDraft.mode===value?'checked':'')+'>'+label+'</label>').join('')+
+    '</fieldset><div class="form"><label>操作时长 *（分钟）<input id="batch-minutes" type="number" min="1" step="1" value="'+escapeHTML(batchDraft.minutes)+'"></label><label>备注 *<textarea id="batch-note">'+escapeHTML(batchDraft.note)+'</textarea></label></div>'+
+    '<p class="muted">演示范围为当前查询结果中可操作的租赁中订单，共 '+batchDraft.ids.length+' 笔。</p><p class="error" role="alert">'+escapeHTML(error)+'</p><div class="actions"><button data-action="close">取 消</button><button class="primary" data-action="batch-review">确 定</button></div>');
+}
+function reviewBatch(){
+  const mode=modal.querySelector('[name=batch-mode]:checked').value;
+  const minutes=$('batch-minutes').value,note=$('batch-note').value.trim();
+  Object.assign(batchDraft,{mode,minutes,note});
+  const n=Number(minutes),delta=mode==='add'?n:-n;
+  if($('scenario').value==='denied')return showBatch('当前操作人无操作权限');
+  if(!batchDraft.ids.length)return showBatch('当前查询结果没有可调整的订单');
+  if(!Number.isInteger(n)||n<1||n>1440)return showBatch('请输入 1 至 1440 的整数分钟');
+  if(!note)return showBatch('请填写备注');
+  const targets=batchDraft.ids.map(find);
+  if(targets.some(o=>o.state!=='租赁中'||busy(o)||refunded(o)||o.T*3600+(o.adjustment||0)*60+delta*60<=o.U))return showBatch('部分订单状态或可用时长不满足本次调整条件，请缩小查询范围');
+  batchDraft.changes=targets.map(o=>[o,timeChange(o,delta)]);
+  openDialog('确认批量调整',fields([['操作范围',targets.length+' 笔示例订单'],['操作时长',batchDraft.changes[0][1].label],['备注',note]])+
+    '<p>'+targets.map(orderNo).join('、')+'</p><div class="actions"><button data-action="batch-back">返回修改</button><button class="primary" data-action="batch-apply">确认调整</button></div>');
+}
+function exportOrders(){
+  const exportView=document.createElement('div');
+  exportView.innerHTML=table(filteredOrders);
+  const rows=[...exportView.querySelectorAll('tr')].map(row=>[...row.cells].slice(0,-1).map(cell=>'"'+cell.textContent.replaceAll('"','""')+'"').join(','));
+  const url=URL.createObjectURL(new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'}));
+  const link=document.createElement('a');
+  link.href=url;
+  link.download='租赁订单查询结果-模拟.csv';
+  link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function calculate(o){
+  if(o.type==='天租'&&!o.H)return {amount:null,line:'缺少下单时小时租单价，请核实并记录金额依据。'};
+  const N=o.U===0?0:Math.max(1,Math.floor(o.U/3600+0.5));
+  const used=o.type==='天租'?o.H*N:o.O/o.T*(o.U/3600);
+  const subtotal=Math.max(0,Math.round(o.P-used));
+  const formula=o.type==='天租'?money(o.H)+' × '+N+' 计费小时':money(o.O)+' ÷ '+o.T+' 小时 × '+Number((o.U/3600).toFixed(6))+' 小时';
+  const amount=Math.min(remaining(o),Math.max(0,subtotal-(busy(o)||refunded(o)?o.record.amount:0)));
+  return {amount,line:'已使用金额 = '+formula+' ≈ '+money(used)+'。累计建议 = max(0, '+money(o.P)+' − 已使用金额) = '+money(subtotal)+'。本次建议 '+money(amount)+'。'};
+}
+function start(o){
+  draft={id:o.id,operation:'refund',mode:'',value:'',reason:'',note:'',basis:'',minutes:''};
+  form();
+}
+function operationChoices(){
+  return '<fieldset><legend>操作类型</legend>'+[['refund','退款'],['add','加时间'],['subtract','减时间']].map(([value,label])=>
+    '<label><input type="radio" name="operation" value="'+value+'" '+(draft.operation===value?'checked':'')+'>'+label+'</label>').join('')+'</fieldset>';
+}
+function form(message=''){
+  const o=find(draft.id), calc=calculate(o), partial=draft.mode==='partial';
+  if(['add','subtract'].includes(draft.operation)){
+    openDialog('订单操作',fields(orderFields(o).slice(0,6))+operationChoices()+
+      '<div class="form"><label>时长（分钟）<input id="minutes" type="number" min="1" step="1" value="'+escapeHTML(draft.minutes)+'"></label><label>处理备注<textarea id="note">'+escapeHTML(draft.note)+'</textarea></label></div>'+
+      '<p class="error" role="alert">'+escapeHTML(message)+'</p><div class="actions"><button data-action="close">取消</button><button class="primary" data-action="review-time">下一步 · 核对</button></div>','time');
+    return;
+  }
+  openDialog('订单操作',fields(orderFields(o).slice(0,6))+
+    operationChoices()+
+    (draft.operation?'<fieldset class="change-zone"><legend>'+changeTag()+'退款方式</legend><label><input type="radio" name="mode" value="full" '+(draft.mode==='full'?'checked':'')+'>全额退款</label><label><input type="radio" name="mode" value="partial" '+(partial?'checked':'')+' '+(o.old?'disabled':'')+'>部分退款</label>'+(o.old?'<p class="muted">功能上线前订单，仅支持现有退款方式。</p>':'')+'</fieldset>':'')+
+    (partial?fields([['租赁状态',o.state],['资金状态',o.fund],['购买时长',o.T+' 小时'],['订单开始时间',o.start],['预计到期时间',o.adjustedEnd??o.end],['实际结束时间',o.actual],['已使用时长',dur(o.U)],['剩余可使用',dur(o.state==='已结束'?0:Math.max(0,o.T*3600+(o.adjustment||0)*60-o.U))],['加减时记录',o.timeLog?.map(log=>log.label).join('、')||'无'],['使用依据','本笔订单有效使用区间 · 示例'],['已成功退款',money(refunded(o)?o.record.amount:0)],['处理中退款',money((busy(o)?o.record.amount:0)+(o.hold||0))],['当前可退金额',money(remaining(o))]])+'<div class="box change-zone"><h3>'+changeTag()+'部分退款试算</h3><p>'+escapeHTML(calc.line)+'</p>'+(calc.amount===0?'<small>已用扣款或资金占用导致建议金额为 0。</small>':'')+(calc.amount>0&&calc.amount<o.P?'<button data-action="suggest">填入建议金额</button>':'')+'</div>':'')+
+    (draft.mode?'<div class="form">'+(partial?'<label>本次退款金额（元）<input id="amount" inputmode="decimal" value="'+escapeHTML(draft.value)+'"></label><label>退款原因<select id="reason"><option value="">请选择</option>'+reasons.map(r=>'<option '+(draft.reason===r?'selected':'')+'>'+r+'</option>').join('')+'</select></label><label>调整或核实依据<input id="basis" value="'+escapeHTML(draft.basis)+'"></label>':'<p>全额退款金额 '+money(o.P)+'</p>')+'<label>处理备注<textarea id="note">'+escapeHTML(draft.note)+'</textarea></label></div>':'')+
+    '<p class="notice error" role="alert">'+escapeHTML(message)+'</p><div class="actions"><button data-action="close">取消</button><button class="primary" data-action="review" '+(!draft.mode?'disabled':'')+'>下一步 · 审核</button></div>',partial?'partial':draft.mode==='full'?'full':'selection');
+}
+function check(o,amount){
+  if($('scenario').value==='denied')return '当前操作人无退款权限';
+  if(o.state==='已结束'&&o.fund==='已解冻'&&o.settled&&draft.mode==='partial')return '该商家已结算，不可操作';
+  if(refunded(o)||busy(o))return '本单已有退款记录，请查询原退款结果';
+  if(!o.P||!remaining(o))return '当前无现金可退';
+  if(!Number.isSafeInteger(amount)||amount<=0)return '请输入大于 0 且精确到分的退款金额';
+  if(amount>remaining(o))return '金额超过当前可退上限 '+money(remaining(o));
+  if(draft.mode==='partial'&&amount===o.P)return '退款金额等于本单实付金额，请选择全额退款';
+  if(draft.mode==='partial'&&!draft.reason)return '请选择退款原因';
+  if(!draft.note.trim())return '请填写处理备注';
+  const calc=calculate(o);
+  if(draft.mode==='partial'&&(calc.amount===null||calc.amount!==amount)&&!draft.basis.trim())return '请填写调整或核实依据';
+  return '';
+}
+function amountFromDraft(o){
+  const input=draft.value.trim();
+  return draft.mode==='full'?o.P:/^\d+(\.\d{1,2})?$/.test(input)?Math.round(Number(input)*100):NaN;
+}
+function alertDialog(message,back='back'){
+  openDialog('操作提醒','<p role="alert">'+escapeHTML(message)+'</p><div class="actions"><button class="primary" data-action="'+back+'">知道了</button></div>');
+}
+function confirmRefund(){
+  const o=find(draft.id),amount=amountFromDraft(o),error=check(o,amount);
+  if(error){if(o.settled&&draft.mode==='partial')alertDialog(error);else form(error);return;}
+  draft.amount=amount;
+  reviewAction=$('scenario').value;
+  openDialog('确认退款',fields([['订单号',orderNo(o)],['收款渠道','原支付渠道（模拟）'],['退款方式',draft.mode==='partial'?'部分退款':'全额退款'],['本次退款金额',money(amount)],['累计已退金额',money(0)],['退款后结算金额',money(o.P-amount)],['退款原因',draft.reason||'—'],['处理备注',draft.note]])+
+    '<p class="box">'+(o.state==='已结束'?'保留原实际结束时间。':'退款成功后结束本笔订单，其余订单维持原定时间。')+'</p><div class="actions"><button data-action="back">返回修改</button><button class="primary" data-action="submit">确认提交</button></div>','review');
+}
+function refreshResult(o,result){
+  const r=o.record;
+  r.status={success:'成功',pending:'处理中',failure:'失败',unknown:'待核查'}[result];
+  r.channel={success:'渠道确认退款成功',pending:'渠道已受理',failure:'渠道明确拒绝，已释放金额占用',unknown:'响应超时，金额继续占用'}[result];
+  if(result==='success'){
+    r.completed='2026-11-19 12:00:00（模拟）';
+    o.actual ||= '2026-11-19 12:00:00';
+    o.state='已结束';
+  }
+}
+function submit(){
+  const o=find(draft.id), mode=reviewAction;
+  if(mode==='settled'&&draft.mode==='partial'){
+    o.state='已结束';o.actual||='2026-11-19 12:00:00';o.fund='已解冻';o.settled=true;
+  }
+  if(mode==='newer'&&!orders.some(x=>x.id===o.id+1000)){
+    orders.unshift({...o,id:o.id+1000,renew:true,U:0,state:'等待开始',record:undefined,actual:undefined,settled:false,fund:'冻结中'});
+  }
+  if(mode==='balance')o.hold=o.P;
+  const error=check(o,draft.amount);
+  if(error){render();alertDialog(mode==='balance'?'可退金额已变化，请重新确认。当前可退 '+money(remaining(o)):error);return;}
+  if(orders.some(x=>x.id>o.id&&x.account===o.account&&!refunded(x))){
+    alertDialog('当前订单不是该用户在此账号下的最后一单。请按倒序处理最新订单。','close');return;
+  }
+  const calc=calculate(o);
+  o.record={id:o.record?.id??'RF-DEMO-'+o.id,mode:draft.mode,amount:draft.amount,reason:draft.reason||'人工全额退款',note:draft.note,basis:draft.basis,calculation:draft.mode==='partial'?calc.line:'现有全额退款流程示意',started:'2026-11-19 12:00:00（模拟）'};
+  logOrderOperation(o,draft.mode==='partial'?'部分退款':'退款',o.record.note);
+  refreshResult(o,['success','pending','failure','unknown'].includes(mode)?mode:'success');
+  modal.close();
+  render('退款'+o.record.status+' · '+orderNo(o)+' · '+o.record.channel);
+}
+document.addEventListener('input',event=>{
+  const keys={minutes:'minutes',amount:'value',reason:'reason',note:'note',basis:'basis'};
+  const key=keys[event.target.id];
+  if(draft&&key)draft[key]=event.target.value;
+});
+document.addEventListener('change',event=>{
+  if(event.target.id==='order-page-size'){pageSize=Number(event.target.value);orderPage=1;render();}
+
+  if(event.target.name==='operation'){draft.operation=event.target.value;form();}
+  if(event.target.name==='mode'){draft.mode=event.target.value;form();}
+});
+document.addEventListener('submit',event=>{
+  if(event.target.id!=='filters')return;
+  event.preventDefault();
+  const data=new FormData(event.target);
+  criteria=Object.fromEntries([...data].map(([key,value])=>[key,value.trim()]));orderPage=1;render();
+});
+document.addEventListener('click',event=>{
+  const b=event.target.closest('button');if(!b)return;
+  const {action,id,value}=b.dataset;
+  if(b.id==='reset'){orders=structuredClone(seed);criteria={query:'',state:'',fund:''};$('scenario').value='success';render('已重置示例订单');return;}
+  if(action==='locate-guide'){
+    const scope=b.closest('.annotated');
+    scope.querySelector('[data-annotation-active]')?.removeAttribute('data-annotation-active');
+    const target=scope.querySelector(b.dataset.selector);
+    if(target){
+      const highlight=target.closest('label')||target;
+      highlight.setAttribute('data-annotation-active','');
+      target.scrollIntoView({block:'nearest',inline:'nearest'});
+      target.focus({preventScroll:true});
+    }else{
+      b.textContent='当前步骤暂无对应操作';
+    }
+  }
+  if(action==='toggle-guide'){guideEnabled=!guideEnabled;render();}
+  if(action==='surface'){surface=value;criteria={query:'',state:'',fund:''};orderPage=1;render();}
+  if(action==='clear'){criteria={query:'',state:'',fund:''};orderPage=1;render();}
+  if(action==='detail'){
+    if(surface!=='player')operationRecords(find(id));
+    else detail(find(id));
+  }
+  if(action==='refund-detail')detail(find(id));
+  if(action==='handoff'){
+    surface=value;
+    criteria={query:orderNo(find(id)),state:'',fund:''};
+    render();
+    if(surface==='merchant')operationRecords(find(id));
+    else detail(find(id));
+  }
+  if(action==='export')exportOrders();
+  if(action==='matches')openDialog('比赛记录',fields([['订单号',orderNo(find(id))]])+'<p>该示例订单暂无比赛记录。</p>');
+  if(action==='batch-entry'){
+    batchDraft={mode:'add',minutes:'',note:'',ids:filteredOrders.filter(o=>o.state==='租赁中'&&!busy(o)&&!refunded(o)).map(o=>o.id)};
+    showBatch();
+  }
+  if(action==='batch-review')reviewBatch();
+  if(action==='batch-back')showBatch();
+  if(action==='batch-apply'){
+    const changes=batchDraft.changes;
+    changes.forEach(([o,change])=>saveTime(o,change,batchDraft.note));
+    batchDraft=null;
+    modal.close();
+    render('已调整 '+changes.length+' 笔订单');
+  }
+  if(action==='order-page'){orderPage=Number(value);render();}
+  if(action==='review-time')reviewTime();
+  if(action==='apply-time')applyTime();
+  if(action==='operate')start(find(id));
+  if(action==='close')modal.close();
+  if(action==='back')form();
+  if(action==='suggest'){draft.value=(calculate(find(draft.id)).amount/100).toFixed(2);form();}
+  if(action==='review')confirmRefund();
+  if(action==='submit')submit();
+  if(action==='query'){
+    const o=find(id);
+    openDialog('查询渠道结果','<p>原退款记录 '+o.record.id+'</p><p class="muted">选择本次模拟查询返回的结果。</p><div class="actions"><button data-action="refund-detail" data-id="'+id+'">暂不处理</button><button data-action="resolve" data-id="'+id+'" data-value="failure">明确失败</button><button class="primary" data-action="resolve" data-id="'+id+'" data-value="success">确认成功</button></div>');
+  }
+  if(action==='resolve'){
+    const o=find(id);if(busy(o))refreshResult(o,value);render();detail(o);
+  }
+});
+render();
+</script>
+</html>
