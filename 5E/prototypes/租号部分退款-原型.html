@@ -36,6 +36,17 @@ dialog:has(.annotation-panel){width:min(980px,calc(100% - 22px))}
 .landing-card,.landing-flow{background:white;border:1px solid #e6e7f0;border-radius:12px;padding:18px}
 .landing-card p{margin:0;color:#555e75}.landing-flow{margin-top:14px}.landing-flow ol{padding-left:22px;margin-bottom:0}.landing-flow li+li{margin-top:6px}
 @media(max-width:760px){.landing-grid{grid-template-columns:1fr}}
+
+.landing-card{display:block;color:inherit;text-decoration:none}
+.landing-card:hover,.landing-card:focus-visible{border-color:#9254de}
+.landing-card-link{display:inline-block;margin-top:12px;color:#6233a5;font-weight:600}
+.scenario-panel{background:#faf7ff;border:1px solid #e2d5f6;border-left:3px solid var(--accent);border-radius:10px;padding:14px;margin:0 0 14px}
+.scenario-panel h2{margin-bottom:4px;font-size:17px}
+.scenario-panel p{margin:5px 0;color:#555e75}
+.scenario-choices{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.scenario-choices label{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;background:white;border:1px solid #ded6eb;border-radius:8px;cursor:pointer}
+.scenario-choices label:has(:checked){border-color:var(--accent);background:#f0e6fe}
+.scenario-choices input{min-height:0;accent-color:var(--accent)}
 </style>
 <main class="landing" id="prototype-home">
   <section class="landing-head" aria-labelledby="landing-title">
@@ -45,9 +56,9 @@ dialog:has(.annotation-panel){width:min(980px,calc(100% - 22px))}
     <a class="landing-cta" href="#prototype">进入原型 →</a>
   </section>
   <div class="landing-grid">
-    <section class="landing-card"><h2>运营后台</h2><p>从订单行发起部分退款，核对建议金额，填写退款金额、原因和备注。成功后可从「记录」回查。</p></section>
-    <section class="landing-card"><h2>商家端</h2><p>通过订单状态旁的「详情」，查看同笔订单的操作时间、类型和备注。</p></section>
-    <section class="landing-card"><h2>用户端</h2><p>查看「部分退款」状态和已退金额。其他租赁订单仍按原定时间使用。</p></section>
+    <a class="landing-card" href="#prototype/operations"><h2>运营后台</h2><p>从订单行发起部分退款，核对建议金额，填写退款金额、原因和备注。成功后可从「记录」回查。</p><span class="landing-card-link">打开运营后台 →</span></a>
+    <a class="landing-card" href="#prototype/merchant"><h2>商家端</h2><p>通过订单状态旁的「详情」，查看同笔订单的操作时间、类型和备注。</p><span class="landing-card-link">打开商家端 →</span></a>
+    <a class="landing-card" href="#prototype/player"><h2>用户端</h2><p>查看「部分退款」状态和已退金额。其他租赁订单仍按原定时间使用。</p><span class="landing-card-link">打开用户端 →</span></a>
   </div>
   <section class="landing-flow"><h2>推荐体验路径</h2>
     <ol><li>进入运营后台，在续租订单 <strong>12026111900000108</strong> 的「操作」中选择「部分退款」。</li>
@@ -60,7 +71,7 @@ dialog:has(.annotation-panel){width:min(980px,calc(100% - 22px))}
   <a class="landing-back" href="#overview">返回需求导览</a>
   <strong class="brand">5EPlay · 租号退款原型</strong>
   <nav aria-label="切换端" id="tabs"></nav>
-  <div class="demo-controls"><label>模拟设置 <select id="scenario"><option value="success">退款成功</option><option value="pending">渠道处理中</option><option value="failure">渠道明确失败</option><option value="unknown">渠道结果未知</option><option value="settled">提交前已结算</option><option value="newer">提交前出现新续租</option><option value="balance">提交前余额变化</option><option value="denied">无操作权限</option></select></label><button id="reset">重置样例</button></div>
+
 </header>
 <div class="shell"><aside id="sidebar"></aside><main id="workspace"></main></div>
 <dialog id="modal" aria-labelledby="modal-title"></dialog>
@@ -162,7 +173,7 @@ const guides={
   player:['我的租号订单','打开详情核对退款状态和已退金额。其余订单继续按各自原定时间使用。','PRD §3.8']
 };
 const guideTargets={
-  operations:['[data-action=operate]','定位订单行操作'],
+  operations:['tbody [data-action=operate]','定位订单行操作'],
   selection:['input[name=mode]','定位新增退款方式'],
   partial:['#amount','定位本次退款金额'],
   full:['#note','定位原有必填备注'],
@@ -243,6 +254,27 @@ function pagination(total){
   const pages=Math.max(1,Math.ceil(total/pageSize));
   return '<div class="foot row"><span>共 '+total+' 条</span><span><button data-action="order-page" data-value="'+(orderPage-1)+'" '+(orderPage===1?'disabled':'')+'>上一页</button> '+orderPage+' / '+pages+' <button data-action="order-page" data-value="'+(orderPage+1)+'" '+(orderPage===pages?'disabled':'')+'>下一页</button></span><label>每页显示：<select id="order-page-size">'+[5,10,25,50].map(n=>'<option '+(n===pageSize?'selected':'')+'>'+n+'</option>').join('')+'</select></label></div>';
 }
+const scenarios={
+  success:['退款成功','审核并确认提交后，查看订单状态和三端记录。'],
+  pending:['渠道处理中','提交后到「记录 → 查看退款明细」查询渠道结果。'],
+  failure:['渠道明确失败','提交后从退款明细查看失败原因，可重新发起。'],
+  unknown:['渠道结果未知','提交后到退款明细查询原记录，核对「待核查」状态。'],
+  settled:['提交前已结算','完成审核后点击确认提交，查看商家已结算的拦截提示。'],
+  newer:['提交前出现新续租','完成审核后点击确认提交，查看非最后一单的提醒。'],
+  balance:['提交前余额变化','完成审核后点击确认提交，查看可退金额变化提示。'],
+  denied:['无退款权限','填写退款信息后点击审核，查看权限提示。']
+};
+let scenario='success';
+function scenarioPanel(){
+  const o=find(108);
+  const ready=!refunded(o)&&!busy(o)&&!o.settled&&!o.hold&&!orders.some(item=>item.id>o.id&&item.account===o.account&&!refunded(item));
+  const choices=Object.entries(scenarios).map(([key,[label]])=>'<label><input type="radio" name="scenario" value="'+key+'" '+(scenario===key?'checked':'')+'>'+label+'</label>').join('');
+  return '<section class="scenario-panel" aria-labelledby="scenario-title"><div class="row"><h2 id="scenario-title">退款演练场景</h2><button id="reset">重置演示数据</button></div>'+
+    '<fieldset class="scenario-choices"><legend>选择场景</legend>'+choices+'</fieldset><p id="scenario-hint" aria-live="polite">'+scenarios[scenario][1]+'</p>'+
+    '<div class="row"><p>示例续租单 '+orderNo(o)+'。填写 10 元、原因、备注和调整依据。</p>'+
+    '<button class="primary" data-action="operate" data-id="'+o.id+'"'+(ready?'':' disabled')+'>打开示例订单</button></div>'+
+    (ready?'':'<p>重置演示数据后可再次使用此订单。</p>')+'</section>';
+}
 function render(message=''){
   document.body.dataset.designSurface=surface;
   const page=surfaces[surface];
@@ -255,7 +287,7 @@ function render(message=''){
   const currentRows=surface!=='player'?visible.slice((orderPage-1)*pageSize,orderPage*pageSize):visible;
   const options=[...new Set(orders.map(o=>surface==='operations'?o.state:visibleState(o)))];
   const filters=surface==='operations'?opsFilter():surface==='merchant'?merchantFilters():'<form class="toolbar" id="filters"><input name="query" aria-label="订单号或账号" placeholder="订单号或账号" value="'+escapeHTML(criteria.query)+'"><select name="state" aria-label="订单状态"><option value="">全部状态</option>'+options.map(s=>'<option '+(s===criteria.state?'selected':'')+'>'+s+'</option>').join('')+'</select>'+(surface==='player'?'':'<select name="fund" aria-label="资金状态"><option value="">全部资金状态</option>'+['冻结中','已解冻'].map(f=>'<option '+(f===criteria.fund?'selected':'')+'>'+f+'</option>').join('')+'</select>')+'<button class="primary">查询</button><button type="button" data-action="clear">清空</button>' +(surface==='operations'?'<button type="button" data-action="export">导出查询结果</button>':'')+'</form>';
-  $('workspace').innerHTML='<div class="row"><h1>'+page.page+'</h1>'+'<button data-action="toggle-guide">'+(guideEnabled?'隐藏交互说明':'显示交互说明')+'</button></div>'+annotated(surface,'<p class="muted">离线原型 · 订单号及标识为脱敏演示值 · 运营和商家列表含截图样本</p><p id="feedback" class="notice" role="status">'+escapeHTML(message)+'</p><div class="panel">'+filters+(visible.length?(surface==='player'?'<div class="cards">'+visible.map(playerCard).join('')+'</div>':table(currentRows)):'<div class="empty">没有符合条件的订单</div>')+(surface!=='player'?pagination(visible.length):'<div class="foot muted">共 '+visible.length+' 笔订单</div>')+'</div>');
+  $('workspace').innerHTML='<div class="row"><h1>'+page.page+'</h1>'+'<button data-action="toggle-guide">'+(guideEnabled?'隐藏交互说明':'显示交互说明')+'</button></div>'+annotated(surface,(ops?scenarioPanel():'')+'<p class="muted">离线原型 · 订单号及标识为脱敏演示值 · 运营和商家列表含截图样本</p><p id="feedback" class="notice" role="status">'+escapeHTML(message)+'</p><div class="panel">'+filters+(visible.length?(surface==='player'?'<div class="cards">'+visible.map(playerCard).join('')+'</div>':table(currentRows)):'<div class="empty">没有符合条件的订单</div>')+(surface!=='player'?pagination(visible.length):'<div class="foot muted">共 '+visible.length+' 笔订单</div>')+'</div>');
 }
 function playerCard(o){
   return '<article class="order-card"><div class="row"><h3>'+o.name+'</h3>'+(outcome(o)==='部分退款'?changeTag():'')+status(visibleState(o),refunded(o)?'success':'active')+'</div><p class="muted">'+orderNo(o)+' · '+o.type+' · '+(o.renew?'续租':'首租')+'</p><div class="row"><span>实付 '+money(o.P)+(refunded(o)?'　已退款 '+money(o.record.amount):'')+'</span><button class="link" data-action="detail" data-id="'+o.id+'">查看详情</button></div><small>预计到期时间 '+(o.adjustedEnd??o.end)+'</small></article>';
@@ -307,7 +339,7 @@ function detail(o){
 }
 function reviewTime(){
   const o=find(draft.id), minutes=Number(draft.minutes);
-  if($('scenario').value==='denied')return form('当前操作人无操作权限');
+  if(scenario==='denied')return form('当前操作人无操作权限');
   if(o.state!=='租赁中')return form('演示中仅对进行中的订单开放加减时');
   if(!Number.isInteger(minutes)||minutes<1||minutes>1440)return form('请输入 1 至 1440 的整数分钟');
   if(!draft.note.trim())return form('请填写处理备注');
@@ -346,7 +378,7 @@ function reviewBatch(){
   const minutes=$('batch-minutes').value,note=$('batch-note').value.trim();
   Object.assign(batchDraft,{mode,minutes,note});
   const n=Number(minutes),delta=mode==='add'?n:-n;
-  if($('scenario').value==='denied')return showBatch('当前操作人无操作权限');
+  if(scenario==='denied')return showBatch('当前操作人无操作权限');
   if(!batchDraft.ids.length)return showBatch('当前查询结果没有可调整的订单');
   if(!Number.isInteger(n)||n<1||n>1440)return showBatch('请输入 1 至 1440 的整数分钟');
   if(!note)return showBatch('请填写备注');
@@ -400,7 +432,7 @@ function form(message=''){
     '<p class="notice error" role="alert">'+escapeHTML(message)+'</p><div class="actions"><button data-action="close">取消</button><button class="primary" data-action="review" '+(!draft.mode?'disabled':'')+'>下一步 · 审核</button></div>',partial?'partial':draft.mode==='full'?'full':'selection');
 }
 function check(o,amount){
-  if($('scenario').value==='denied')return '当前操作人无退款权限';
+  if(scenario==='denied')return '当前操作人无退款权限';
   if(o.state==='已结束'&&o.fund==='已解冻'&&o.settled&&draft.mode==='partial')return '该商家已结算，不可操作';
   if(refunded(o)||busy(o))return '本单已有退款记录，请查询原退款结果';
   if(!o.P||!remaining(o))return '当前无现金可退';
@@ -424,7 +456,7 @@ function confirmRefund(){
   const o=find(draft.id),amount=amountFromDraft(o),error=check(o,amount);
   if(error){if(o.settled&&draft.mode==='partial')alertDialog(error);else form(error);return;}
   draft.amount=amount;
-  reviewAction=$('scenario').value;
+  reviewAction=scenario;
   openDialog('确认退款',fields([['订单号',orderNo(o)],['收款渠道','原支付渠道（模拟）'],['退款方式',draft.mode==='partial'?'部分退款':'全额退款'],['本次退款金额',money(amount)],['累计已退金额',money(0)],['退款后结算金额',money(o.P-amount)],['退款原因',draft.reason||'—'],['处理备注',draft.note]])+
     '<p class="box">'+(o.state==='已结束'?'保留原实际结束时间。':'退款成功后结束本笔订单，其余订单维持原定时间。')+'</p><div class="actions"><button data-action="back">返回修改</button><button class="primary" data-action="submit">确认提交</button></div>','review');
 }
@@ -465,6 +497,11 @@ document.addEventListener('input',event=>{
   if(draft&&key)draft[key]=event.target.value;
 });
 document.addEventListener('change',event=>{
+  if(event.target.name==='scenario'){
+    scenario=event.target.value;
+    $('scenario-hint').textContent=scenarios[scenario][1];
+  }
+
   if(event.target.id==='order-page-size'){pageSize=Number(event.target.value);orderPage=1;render();}
 
   if(event.target.name==='operation'){draft.operation=event.target.value;form();}
@@ -479,7 +516,7 @@ document.addEventListener('submit',event=>{
 document.addEventListener('click',event=>{
   const b=event.target.closest('button');if(!b)return;
   const {action,id,value}=b.dataset;
-  if(b.id==='reset'){orders=structuredClone(seed);criteria={query:'',state:'',fund:''};$('scenario').value='success';render('已重置示例订单');return;}
+  if(b.id==='reset'){orders=structuredClone(seed);criteria={query:'',state:'',fund:''};scenario='success';orderPage=1;render('已重置示例订单');return;}
   if(action==='locate-guide'){
     const scope=b.closest('.annotated');
     scope.querySelector('[data-annotation-active]')?.removeAttribute('data-annotation-active');
@@ -541,7 +578,14 @@ document.addEventListener('click',event=>{
   }
 });
 function showPrototypePage(focus=false){
-  const inPrototype=location.hash==='#prototype';
+  const route=location.hash.match(/^#prototype(?:\/(operations|merchant|player))?$/);
+  const inPrototype=Boolean(route);
+  if(route){
+    surface=route[1]||'operations';
+    criteria={query:'',state:'',fund:''};
+    orderPage=1;
+    render();
+  }
   $('prototype-home').hidden=inPrototype;
   $('prototype-app').hidden=!inPrototype;
   if(!inPrototype&&modal.open)modal.close();
