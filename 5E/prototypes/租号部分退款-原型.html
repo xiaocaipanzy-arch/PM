@@ -262,16 +262,17 @@ const scenarios={
   settled:['提交前已结算','完成审核后点击确认提交，查看商家已结算的拦截提示。'],
   newer:['提交前出现新续租','完成审核后点击确认提交，查看非最后一单的提醒。'],
   balance:['提交前余额变化','完成审核后点击确认提交，查看可退金额变化提示。'],
-  denied:['无退款权限','填写退款信息后点击审核，查看权限提示。']
+  denied:['无退款权限','填写退款信息后点击审核，查看权限提示。'],
+  missingDuration:['包时租缺少折算时长','选择部分退款，核对缺项提示。尝试不填调整依据提交审核，再补充人工核实依据。']
 };
 let scenario='success';
 function scenarioPanel(){
-  const o=find(108);
+  const o=find(scenario==='missingDuration'?105:108);
   const ready=!refunded(o)&&!busy(o)&&!o.settled&&!o.hold&&!orders.some(item=>item.id>o.id&&item.account===o.account&&!refunded(item));
   const choices=Object.entries(scenarios).map(([key,[label]])=>'<label><input type="radio" name="scenario" value="'+key+'" '+(scenario===key?'checked':'')+'>'+label+'</label>').join('');
   return '<section class="scenario-panel" aria-labelledby="scenario-title"><div class="row"><h2 id="scenario-title">退款演练场景</h2><button id="reset">重置演示数据</button></div>'+
     '<fieldset class="scenario-choices"><legend>选择场景</legend>'+choices+'</fieldset><p id="scenario-hint" aria-live="polite">'+scenarios[scenario][1]+'</p>'+
-    '<div class="row"><p>示例续租单 '+orderNo(o)+'。填写 10 元、原因、备注和调整依据。</p>'+
+    '<div class="row"><p>示例'+(o.type==='包时租'?'包时租单 ':'续租单 ')+orderNo(o)+'。填写 10 元、原因、备注和调整依据。</p>'+
     '<button class="primary" data-action="operate" data-id="'+o.id+'"'+(ready?'':' disabled')+'>打开示例订单</button></div>'+
     (ready?'':'<p>重置演示数据后可再次使用此订单。</p>')+'</section>';
 }
@@ -298,12 +299,20 @@ function table(visible){
   const rows=visible.map(o=>{
     const buttons=o.source?'—':'<button class="link" data-action="detail" data-id="'+o.id+'">'+(ops?'记录':'详情')+'</button>'+(ops?'<button class="link" data-action="operate" data-id="'+o.id+'" '+(refunded(o)||busy(o)?'disabled':'')+'>操作</button><button class="link" data-action="matches" data-id="'+o.id+'">比赛记录</button>':'');
     const identity=opsIdentity(o);
-    const cells=ops?[orderNo(o),identity.paid,identity.channel,identity.rental,identity.steam,identity.merchant,identity.uid,o.duration??o.T+'小时',o.source?'—':'支付宝-易宝',o.source?'—':payNo(o),o.rentalType??(o.renew?'续租1次':'首租'),money(o.O),o.P<o.O?money(o.O-o.P):'—',money(o.P),money(o.listedIncome??Math.round(o.P*.3)),money(o.platformIncome??o.P-Math.round(o.P*.3)),(opsStatus(o)===manualPartialStatus?changeTag():'')+status(opsStatus(o)),o.adjustedEnd??o.end??'—',o.actual??'—',refunded(o)&&o.record.mode==='full'?'已退款':o.fund??'—',buttons]:[orderNo(o),identity.paid,identity.rental,o.duration??o.T+'小时',o.rentalType??(o.renew?'续租1次':'首租'),money(o.O),o.P<o.O?money(o.O-o.P):'—',money(o.P),money(o.listedIncome??merchantIncome(o)),(outcome(o)==='部分退款'?changeTag():'')+status(visibleState(o),refunded(o)?'success':'active')+' '+(o.operationLog?.length?buttons:''),o.adjustedEnd??o.end??'—',o.actual??'—',refunded(o)&&o.record.mode==='full'?'已退款':o.fund??'—'];
+    const income=settlementIncome(o);
+    const cells=ops?[orderNo(o),identity.paid,identity.channel,identity.rental,identity.steam,identity.merchant,identity.uid,o.duration??o.T+'小时',o.source?'—':'支付宝-易宝',o.source?'—':payNo(o),o.rentalType??(o.renew?'续租1次':'首租'),money(o.O),o.P<o.O?money(o.O-o.P):'—',money(o.P),money(income.merchant),money(income.platform),(opsStatus(o)===manualPartialStatus?changeTag():'')+status(opsStatus(o)),o.adjustedEnd??o.end??'—',o.actual??'—',refunded(o)&&o.record.mode==='full'?'已退款':o.fund??'—',buttons]:[orderNo(o),identity.paid,identity.rental,o.duration??o.T+'小时',o.rentalType??(o.renew?'续租1次':'首租'),money(o.O),o.P<o.O?money(o.O-o.P):'—',money(o.P),money(income.merchant),(outcome(o)==='部分退款'?changeTag():'')+status(visibleState(o),refunded(o)?'success':'active')+' '+(o.operationLog?.length?buttons:''),o.adjustedEnd??o.end??'—',o.actual??'—',refunded(o)&&o.record.mode==='full'?'已退款':o.fund??'—'];
     return '<tr>'+cells.map(c=>'<td>'+c+'</td>').join('')+'</tr>';
   });
   return '<div class="table-wrap"><table><thead><tr>'+headings.map(h=>'<th>'+h+(h==='实际结束时间'?'<br>'+changeTag():h==='预计到期时间'?'<br>'+changeTag('原到期时间 · 改名'):'')+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
 }
-const merchantIncome=o=>Math.round((o.P-(refunded(o)?o.record.amount:0))*0.8);
+// 演示订单沿用原运营列表的 30% 渠道比例。截图样本保留原展示值。
+const demoMerchantShare=0.30;
+function settlementIncome(o){
+  if(o.source)return {merchant:o.listedIncome,platform:o.platformIncome};
+  const base=o.P-(refunded(o)?o.record.amount:0);
+  const merchant=Math.round(base*(o.merchantShare??demoMerchantShare));
+  return {merchant,platform:base-merchant};
+}
 function logOrderOperation(o,type,note){
   (o.operationLog ||= []).unshift({time:'2026-11-19 12:00:00',operator:'客服演示员',type,note});
 }
@@ -323,7 +332,7 @@ function detail(o){
   base.push(['订单状态',surface==='operations'?o.state:visibleState(o)]);
   if(surface==='player')base.push(['使用资格',o.state==='租赁中'?'当前可使用':o.state==='等待开始'?'按原定时间开始':'已结束']);
   if(refunded(o))base.push(['已退款金额',money(r.amount)]);
-  if(surface==='merchant')base.push(['资金状态',refunded(o)&&o.record.mode==='full'?'已退款':o.fund??'—'],['实际收入',money(o.listedIncome??merchantIncome(o))]);
+  if(surface==='merchant')base.push(['资金状态',refunded(o)&&o.record.mode==='full'?'已退款':o.fund??'—'],['实际收入',money(settlementIncome(o).merchant)]);
   let history='';
   if(r&&surface==='operations'){
     history='<h3>退款记录</h3>'+fields([['退款记录号',r.id],['方式',r.mode==='partial'?'部分退款':'全额退款'],['本次退款进度',r.status],['渠道结果',r.channel],['实际到账','当前无到账凭证'],['发起时间',r.started],['完成时间',r.completed],['金额',money(r.amount)],['原因',r.reason],['处理备注',r.note],['调整或核实依据',r.basis||'—'],['试算依据',r.calculation],['操作人','客服演示员']]);
@@ -399,12 +408,20 @@ function exportOrders(){
   link.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+function calculationHours(o){
+  return scenario==='missingDuration'&&o.type==='包时租'?undefined:o.T;
+}
 function calculate(o){
+  const hours=calculationHours(o);
+  if(o.type!=='天租'&&(!Number.isFinite(hours)||hours<=0)){
+    const label=o.type==='包时租'?'套餐折算时长':'订单购买时长';
+    return {amount:null,line:'缺少有效的'+label+'，无法试算。请人工核实后填写退款金额及依据。'};
+  }
   if(o.type==='天租'&&!o.H)return {amount:null,line:'缺少下单时小时租单价，请核实并记录金额依据。'};
   const N=o.U===0?0:Math.max(1,Math.floor(o.U/3600+0.5));
-  const used=o.type==='天租'?o.H*N:o.O/o.T*(o.U/3600);
+  const used=o.type==='天租'?o.H*N:o.O/hours*(o.U/3600);
   const subtotal=Math.max(0,Math.round(o.P-used));
-  const formula=o.type==='天租'?money(o.H)+' × '+N+' 计费小时':money(o.O)+' ÷ '+o.T+' 小时 × '+Number((o.U/3600).toFixed(6))+' 小时';
+  const formula=o.type==='天租'?money(o.H)+' × '+N+' 计费小时':money(o.O)+' ÷ '+hours+' 小时 × '+Number((o.U/3600).toFixed(6))+' 小时';
   const amount=Math.min(remaining(o),Math.max(0,subtotal-(busy(o)||refunded(o)?o.record.amount:0)));
   return {amount,line:'已使用金额 = '+formula+' ≈ '+money(used)+'。累计建议 = max(0, '+money(o.P)+' − 已使用金额) = '+money(subtotal)+'。本次建议 '+money(amount)+'。'};
 }
@@ -418,6 +435,9 @@ function operationChoices(){
 }
 function form(message=''){
   const o=find(draft.id), calc=calculate(o), partial=draft.mode==='partial';
+  const hours=calculationHours(o);
+  const knownHours=Number.isFinite(hours)&&hours>0;
+  const availableDuration=o.state==='已结束'?dur(0):knownHours?dur(Math.max(0,hours*3600+(o.adjustment||0)*60-o.U)):'—';
   if(['add','subtract'].includes(draft.operation)){
     openDialog('订单操作',fields(orderFields(o).slice(0,6))+operationChoices()+
       '<div class="form"><label>时长（分钟）<input id="minutes" type="number" min="1" step="1" value="'+escapeHTML(draft.minutes)+'"></label><label>处理备注<textarea id="note">'+escapeHTML(draft.note)+'</textarea></label></div>'+
@@ -427,7 +447,7 @@ function form(message=''){
   openDialog('订单操作',fields(orderFields(o).slice(0,6))+
     operationChoices()+
     (draft.operation?'<fieldset class="change-zone"><legend>'+changeTag()+'退款方式</legend><label><input type="radio" name="mode" value="full" '+(draft.mode==='full'?'checked':'')+'>全额退款</label><label><input type="radio" name="mode" value="partial" '+(partial?'checked':'')+' '+(o.old?'disabled':'')+'>部分退款</label>'+(o.old?'<p class="muted">功能上线前订单，仅支持现有退款方式。</p>':'')+'</fieldset>':'')+
-    (partial?fields([['租赁状态',o.state],['资金状态',o.fund],['购买时长',o.T+' 小时'],['订单开始时间',o.start],['预计到期时间',o.adjustedEnd??o.end],['实际结束时间',o.actual],['已使用时长',dur(o.U)],['剩余可使用',dur(o.state==='已结束'?0:Math.max(0,o.T*3600+(o.adjustment||0)*60-o.U))],['加减时记录',o.timeLog?.map(log=>log.label).join('、')||'无'],['使用依据','本笔订单有效使用区间 · 示例'],['已成功退款',money(refunded(o)?o.record.amount:0)],['处理中退款',money((busy(o)?o.record.amount:0)+(o.hold||0))],['当前可退金额',money(remaining(o))]])+'<div class="box change-zone"><h3>'+changeTag()+'部分退款试算</h3><p>'+escapeHTML(calc.line)+'</p>'+(calc.amount===0?'<small>已用扣款或资金占用导致建议金额为 0。</small>':'')+(calc.amount>0&&calc.amount<o.P?'<button data-action="suggest">填入建议金额</button>':'')+'</div>':'')+
+    (partial?fields([['租赁状态',o.state],['资金状态',o.fund],[o.type==='包时租'?'套餐折算时长':'购买时长',knownHours?hours+' 小时':'—'],['订单开始时间',o.start],['预计到期时间',o.adjustedEnd??o.end],['实际结束时间',o.actual],['已使用时长',dur(o.U)],['剩余可使用',availableDuration],['加减时记录',o.timeLog?.map(log=>log.label).join('、')||'无'],['使用依据',o.type==='包时租'?(knownHours?'套餐折算时长及本笔有效使用区间':'待人工核实'):'本笔订单有效使用区间 · 示例'],['已成功退款',money(refunded(o)?o.record.amount:0)],['处理中退款',money((busy(o)?o.record.amount:0)+(o.hold||0))],['当前可退金额',money(remaining(o))]])+'<div class="box change-zone"><h3>'+changeTag()+'部分退款试算</h3><p>'+escapeHTML(calc.line)+'</p>'+(calc.amount===0?'<small>已用扣款或资金占用导致建议金额为 0。</small>':'')+(calc.amount>0&&calc.amount<o.P?'<button data-action="suggest">填入建议金额</button>':'')+'</div>':'')+
     (draft.mode?'<div class="form">'+(partial?'<label>本次退款金额（元）<input id="amount" inputmode="decimal" value="'+escapeHTML(draft.value)+'"></label><label>退款原因<select id="reason"><option value="">请选择</option>'+reasons.map(r=>'<option '+(draft.reason===r?'selected':'')+'>'+r+'</option>').join('')+'</select></label><label>调整或核实依据<input id="basis" value="'+escapeHTML(draft.basis)+'"></label>':'<p>全额退款金额 '+money(o.P)+'</p>')+'<label>处理备注<textarea id="note">'+escapeHTML(draft.note)+'</textarea></label></div>':'')+
     '<p class="notice error" role="alert">'+escapeHTML(message)+'</p><div class="actions"><button data-action="close">取消</button><button class="primary" data-action="review" '+(!draft.mode?'disabled':'')+'>下一步 · 审核</button></div>',partial?'partial':draft.mode==='full'?'full':'selection');
 }
@@ -499,7 +519,8 @@ document.addEventListener('input',event=>{
 document.addEventListener('change',event=>{
   if(event.target.name==='scenario'){
     scenario=event.target.value;
-    $('scenario-hint').textContent=scenarios[scenario][1];
+    $('scenario-title').closest('.scenario-panel').outerHTML=scenarioPanel();
+    document.querySelector('[name=scenario]:checked').focus();
   }
 
   if(event.target.id==='order-page-size'){pageSize=Number(event.target.value);orderPage=1;render();}
